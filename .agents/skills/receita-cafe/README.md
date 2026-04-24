@@ -24,6 +24,26 @@ O diagrama abaixo ilustra o ciclo de vida de uma extração. Este formato em **U
                        [Ajuste de Moagem]
 ```
 
+### 🧠 Visão de Estados (Complementar)
+Para visualizadores que suportam Mermaid (GitHub/VS Code):
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Preparation: Iniciar Skill
+    Preparation --> Blooming: Despejo de Água (2x pó)
+    state Blooming {
+        [*] --> CO2_Release
+        CO2_Release --> Expansion
+    }
+    Blooming --> Extraction: 30s concluídos
+    Extraction --> QualityControl: Fluxo Encerrado
+    QualityControl --> Finished: Parâmetros OK
+    QualityControl --> Adjustment: Alerta de Tempo
+    Adjustment --> Idle: Calibrar Moagem
+    Finished --> [*]
+```
+
 > 🖼️ **Visual Check:** Para uma visão detalhada do processo de barismo, consulte o infográfico em: `assets/flowchart.png`
 
 ![Coffee Flow Infographic](assets/flowchart.png)
