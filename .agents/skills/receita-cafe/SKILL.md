@@ -1,102 +1,107 @@
 ---
 name: receita-cafe
 description: >
-  Prepara café coado brasileiro seguindo as boas práticas de temperatura,
-  proporção e tempo de extração. Use quando o usuário pedir para preparar,
-  explicar ou ensinar como fazer um bom café coado. Ideal para demonstrar
-  a estrutura de uma Agent Skill de forma didática.
+  Engine avançada de extração de café. Harmoniza o rigor técnico do 
+  padrão Agent Skills com o conhecimento sensorial do barista. 
+  Capacidades: Cálculo de extração, Ajuste de Moagem, Perfil de Água e 
+  Correção de Erros em Tempo Real.
+version: "2.1.0"
 license: MIT
-compatibility: Requer coador, filtro de papel, café moído e água quente.
 metadata:
-  author: professor-senior
-  version: "1.0"
+  author: coffee-engineer-senior
+  domain: culinary, science, automation
   language: pt-BR
-  domain: culinaria, cafe, didatico, agentskills
+
+interface:
+  input:
+    type: object
+    required: [volume_ml, regiao]
+    properties:
+      volume_ml: { type: integer, minimum: 150 }
+      regiao: { type: string, enum: [mogiana, cerrado, sul_de_minas, espirito_santo, generico] }
+      intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
+      moagem_ajustavel: { type: boolean, default: true }
+  output:
+    type: object
+    properties:
+      parametros_finais: { type: object }
+      alerta_qa: { type: array, items: { type: string } }
+      protocolo_execucao: { type: string }
 ---
 
-# ☕ Receita de Café Coado — SKILL
+# ☕ Advanced Brazilian Coffee Engine (Harmonized v2.1)
 
-## 📌 Contexto
-
-Um bom café não é apenas misturar pó com água quente.
-**Temperatura, proporção e tempo de extração** fazem toda a diferença
-entre um café equilibrado e um amargo ou aguado.
-
-Esta skill garante um café coado brasileiro de qualidade, cobrindo
-desde a escolha da temperatura até a técnica de despejo em círculos.
-
-> 💡 Para variações avançadas (espresso, prensa francesa, cold brew,
-> moagem e torra), carregue: `references/REFERENCE.md`
-
----
-
-## 🧪 Ingredientes
-
-| Ingrediente    | Quantidade por xícara |
-|----------------|-----------------------|
-| Café moído     | 10 g                  |
-| Água           | 150 ml                |
-| Temperatura    | 90 – 96 °C            |
-| Tempo total    | 3 – 4 minutos         |
-
-Use o template em `assets/template-pedido.md` para anotar pedidos
-customizados (quantidade de xícaras, força, variação).
+## 🌟 Contexto Didático
+Um café excepcional é a intersecção entre **química e técnica**. Esta skill orquestra as variáveis de temperatura, turbulência e tempo, garantindo que o agente não apenas "informe", mas **garanta a qualidade** do resultado final.
 
 ---
 
-## 📋 Passo a Passo
+## 🗺️ Business Logic & Terroir Matrix (Expandida)
 
-1. Aqueça a água entre **90 e 96 °C**
-   _(não use água fervente — 100 °C queima o café e extrai amargor)_
-2. **Umedeça o filtro** com água quente antes de colocar o pó
-   _(remove gosto de papel e pré-aquece o coador)_
-3. Adicione o **café moído** no filtro umedecido
-4. Despeje **30 ml de água** em movimentos circulares e aguarde **30 segundos**
-   _(pré-infusão: libera o CO₂ e prepara os grãos para extração uniforme)_
-5. Despeje o **restante da água** lentamente, em movimentos circulares
-   _(do centro para as bordas, sem tocar o filtro)_
-6. Aguarde a extração completa: **3 a 4 minutos** no total
+| Região | Ratio | Temp. | Moagem Sugerida | Notas Sensoriais |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mogiana** | 1:12 | 92°C | Média-Fina | Doçura, Chocolate, Acidez Baixa |
+| **Cerrado** | 1:15 | 94°C | Média | Nozes, Caramelo, Corpo Marcante |
+| **Sul de Minas** | 1:14 | 90°C | Média-Grossa | Frutas Amarelas, Acidez Cítrica |
+| **Espírito Santo** | 1:13 | 91°C | Média | Especiarias, Chocolate Amargo |
 
 ---
 
-## ⚠️ Gotchas
+## 🧪 Capacidades Avançadas
 
-- **Água fervente (100 °C)** extrai compostos amargos — sempre aguarde 1 minuto após ferver
-- **Pular a pré-infusão** resulta em extração desigual — partes do pó ficam sub e superextraídas
-- **Filtro sem umedecer** transfere gosto de papel para o café
-- **Pó muito fino** entope o filtro e superextrai — resultado amargo
-- **Pó muito grosso** deixa o café aguado e sem corpo — subextração
-- **Proporção errada** é a causa mais comum de café ruim — respeite os 10 g por 150 ml
+### 1. Controle Químico da Água
+- **Regra:** Utilize água filtrada ou mineral com TDS entre 75-150 ppm.
+- **Aviso Técnico:** Água muito pura (destilada) resulta em café "plano" e sem corpo; água muito dura (calcária) neutraliza a acidez e gera amargor.
+
+### 2. Ajuste Dinâmico de Moagem
+O agente deve diagnosticar a granulometria baseada nos sintomas observados:
+- **Pó muito fino (Fine):** Entope o filtro e causa sobre-extração. *Sintoma: Café amargo, cinza e tempo > 4.5 min.*
+- **Pó muito grosso (Coarse):** A água passa sem resistência. *Sintoma: Café aguado, sem corpo, azedo e tempo < 2.5 min.*
+- **Moagem Ideal:** Textura de sal de cozinha (médio-fina) para coadores de papel.
 
 ---
 
-## ✅ Checklist QA
+## 📋 Protocolo de Execução (The "Golden Path")
 
+1. **Setup Térmico:** Aquecer água ao alvo da região (90°C~94°C). *Dica: Se ferver, aguarde 60s antes do uso para evitar a queima térmica.*
+2. **Purga Quente:** Escaldar o filtro. *(Remove o gosto de papel e pré-aquece o porta-filtro — ignorar este passo transfere gosto de celulose para a bebida).*
+3. **Pré-Infusão (Blooming):** 2x o peso do pó em água. Aguarde 30s. *Dica: A liberação de CO2 prepara os grãos para uma extração uniforme.*
+4. **Extração em Pulsos:**
+    - Primeiro pulso (40% da água): Foco em extrair acidez e doçura.
+    - Segundo pulso (60% restante): Foco em corpo e equilíbrio.
+
+---
+
+## ⚠️ Gotchas & Diagnóstico (QA)
+
+- **Água Fervente (100°C):** Extrai compostos amargos indesejados. Jamais use água borbulhando.
+- **Canalização:** Quando a água abre um "caminho fácil". Mantenha despejos circulares do centro para as bordas para evitar.
+- **Proporção:** Respeite o ratio da região. Proporções erradas são a causa #1 de café ruim.
+
+## ✅ Checklist de Certificação
+- [ ] Temperatura entre 90 e 94 °C (Não fervendo).
+- [ ] Filtro umedecido e porta-filtro pré-aquecido.
+- [ ] Pré-infusão de 30s realizada (Bloom).
+- [ ] Despejo em movimentos circulares (sem tocar o papel).
+- [ ] Tempo total de extração entre 3:00 e 4:00 minutos.
+
+---
+
+## ☕ Exemplo de Saída (Pedido Real)
+
+Pedido: **500ml de Café do Cerrado Mineiro**
+
+```text
+Configuração de Extração:
+  → Café: 33.3g (Moagem Média)
+  → Água: 500ml (Temp: 94°C)
+  → Região: Cerrado - Notas de Chocolate e Nozes
+
+Protocolo:
+  1. Escaldar filtro e pré-aquecer jarra.
+  2. Pré-infusão de 65ml por 30 segundos.
+  3. Despejos lentos até completar 500ml.
+  4. Tempo esperado: 3min 45seg.
 ```
-[ ] Temperatura entre 90 e 96 °C (não fervendo)?
-[ ] Filtro umedecido antes de adicionar o pó?
-[ ] Pré-infusão de 30 ml por 30 segundos realizada?
-[ ] Despejo em movimentos circulares do centro para as bordas?
-[ ] Tempo total de extração entre 3 e 4 minutos?
-[ ] Proporção correta: 10 g de café para 150 ml de água?
-```
 
-Valide automaticamente com: `python scripts/validar_cafe.py`
 
----
-
-## ☕ Exemplo de Saída
-
-Para um pedido de **2 xícaras de café médio**:
-
-```
-Ingredientes:
-  → 20 g de café moído (médio)
-  → 300 ml de água a 93 °C
-
-Tempo de pré-infusão: 30 segundos
-Tempo total de extração: 3 min 30 seg
-
-Resultado esperado: café equilibrado, levemente encorpado,
-                    sem amargor excessivo.
-```
