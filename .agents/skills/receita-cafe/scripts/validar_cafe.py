@@ -1,129 +1,72 @@
 #!/usr/bin/env python3
 """
-validar_cafe.py — Valida os parâmetros de preparo do café coado.
-
-Uso interativo : python scripts/validar_cafe.py
-Uso direto     : python scripts/validar_cafe.py --gramas 10 --ml 150 --temp 93 --minutos 3.5
+validar_cafe.py — Engine de validação harmonizada (Didática + Técnica).
 """
 import sys
 import argparse
+import json
 
-
-REGRAS = {
-    "gramas_por_ml": (10 / 150),   # proporção ideal
-    "temp_min": 90,
-    "temp_max": 96,
-    "tempo_min": 3.0,
-    "tempo_max": 4.0,
-    "pre_infusao_ml": 30,
-    "pre_infusao_seg": 30,
+# Lógica de Negócio (Sync com SKILL.md v2.1)
+TERROIRS = {
+    "mogiana": {"ratio": 1/12, "temp": 92, "moagem": "Média-Fina", "notas": "Doçura, Chocolate"},
+    "cerrado": {"ratio": 1/15, "temp": 94, "moagem": "Média", "notas": "Nozes, Caramelo"},
+    "sul_de_minas": {"ratio": 1/14, "temp": 90, "moagem": "Média-Grossa", "notas": "Acidez Cítrica"},
+    "espirito_santo": {"ratio": 1/13, "temp": 91, "moagem": "Média", "notas": "Especiarias"},
+    "generico": {"ratio": 1/15, "temp": 93, "moagem": "Média", "notas": "Equilibrado"}
 }
 
-
-def validar(gramas: float, ml: float, temp: float, minutos: float) -> tuple:
-    erros = []
-    avisos = []
-    ok = []
-
-    # Proporção
-    proporcao = gramas / ml if ml > 0 else 0
-    ideal = REGRAS["gramas_por_ml"]
-    desvio = abs(proporcao - ideal) / ideal * 100
-    if desvio > 20:
-        erros.append(
-            f"❌ Proporção fora do padrão: {gramas:.1f}g para {ml:.0f}ml "
-            f"(ideal: 10g/150ml — desvio de {desvio:.0f}%)"
-        )
-    elif desvio > 10:
-        avisos.append(
-            f"⚠️  Proporção levemente fora: {gramas:.1f}g para {ml:.0f}ml "
-            f"(ideal: 10g/150ml — desvio de {desvio:.0f}%)"
-        )
-    else:
-        ok.append(f"✅ Proporção correta: {gramas:.1f}g para {ml:.0f}ml")
-
-    # Temperatura
-    if temp >= 100:
-        erros.append(
-            f"❌ Temperatura muito alta: {temp:.0f}°C "
-            f"(água fervente extrai amargor — use entre 90 e 96 °C)"
-        )
-    elif temp < REGRAS["temp_min"]:
-        erros.append(
-            f"❌ Temperatura muito baixa: {temp:.0f}°C "
-            f"(abaixo de 90°C resulta em subextração — café aguado)"
-        )
-    elif temp > REGRAS["temp_max"]:
-        avisos.append(
-            f"⚠️  Temperatura acima do ideal: {temp:.0f}°C "
-            f"(recomendado entre 90 e 96 °C)"
-        )
-    else:
-        ok.append(f"✅ Temperatura ideal: {temp:.0f}°C")
-
-    # Tempo de extração
-    if minutos < REGRAS["tempo_min"]:
-        avisos.append(
-            f"⚠️  Tempo curto: {minutos:.1f} min "
-            f"(subextração possível — café pode ficar azedo)"
-        )
-    elif minutos > REGRAS["tempo_max"]:
-        avisos.append(
-            f"⚠️  Tempo longo: {minutos:.1f} min "
-            f"(superextração possível — café pode ficar amargo)"
-        )
-    else:
-        ok.append(f"✅ Tempo de extração ideal: {minutos:.1f} min")
-
-    return ok, avisos, erros
-
-
-def entrada_interativa():
-    print("\n☕ Validador de Café Coado")
-    print("─" * 40)
-    try:
-        gramas  = float(input("Quantidade de café (g): "))
-        ml      = float(input("Quantidade de água (ml): "))
-        temp    = float(input("Temperatura da água (°C): "))
-        minutos = float(input("Tempo de extração (minutos): "))
-    except ValueError:
-        print("❌ Entrada inválida. Use números.")
-        sys.exit(1)
-    return gramas, ml, temp, minutos
-
+def diagnosticar_extração(tempo_seg):
+    if tempo_seg < 180:
+        return "⚠️ Fluxo muito rápido. Sugestão: Use uma moagem mais FINA para aumentar a resistência."
+    if tempo_seg > 270:
+        return "⚠️ Fluxo muito lento. Sugestão: Use uma moagem mais GROSSA para facilitar a passagem."
+    return "✅ Tempo de extração perfeito."
 
 def main():
-    parser = argparse.ArgumentParser(description="Valida parâmetros do café coado.")
-    parser.add_argument("--gramas",   type=float, help="Quantidade de café em gramas")
-    parser.add_argument("--ml",       type=float, help="Quantidade de água em ml")
-    parser.add_argument("--temp",     type=float, help="Temperatura da água em °C")
-    parser.add_argument("--minutos",  type=float, help="Tempo de extração em minutos")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ml", type=int, help="Volume de água")
+    parser.add_argument("--gramas", type=float, help="Peso do café")
+    parser.add_argument("--temp", type=int, help="Temperatura")
+    parser.add_argument("--tempo", type=int, help="Tempo total em segundos")
+    parser.add_argument("--regiao", type=str, default="generico")
+    parser.add_argument("--tds_agua", type=int, help="TDS da água (ppm)")
+    parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
     args = parser.parse_args()
 
-    if all([args.gramas, args.ml, args.temp, args.minutos]):
-        gramas, ml, temp, minutos = args.gramas, args.ml, args.temp, args.minutos
+    config = TERROIRS.get(args.regiao.lower(), TERROIRS["generico"])
+    alerts = []
+
+    # Alerta Químico de Água
+    if args.tds_agua:
+        if args.tds_agua < 50: alerts.append("Água muito pura (mole). Café pode ficar sem corpo.")
+        if args.tds_agua > 200: alerts.append("Água muito dura (mineralizada). Pode gerar amargor excessivo.")
+
+    # Diagnóstico de Tempo
+    if args.tempo:
+        alerts.append(diagnosticar_extração(args.tempo))
+
+    # Cálculo de Parâmetros
+    params = {
+        "regiao": args.regiao,
+        "cafe_g": round(args.ml * config["ratio"], 1) if args.ml else 0,
+        "temp_alvo": config["temp"],
+        "moagem_ideal": config["moagem"],
+        "notas": config["notas"],
+        "avisos_barista": alerts
+    }
+
+    if args.json:
+        print(json.dumps(params, indent=2))
     else:
-        gramas, ml, temp, minutos = entrada_interativa()
-
-    ok, avisos, erros = validar(gramas, ml, temp, minutos)
-
-    print("\n── Resultado da Validação ──────────────")
-    for msg in ok:
-        print(f"  {msg}")
-    for msg in avisos:
-        print(f"  {msg}")
-    for msg in erros:
-        print(f"  {msg}")
-    print("─" * 40)
-
-    if erros:
-        print(f"\n❌ {len(erros)} erro(s) encontrado(s). Ajuste os parâmetros antes de preparar.")
-        sys.exit(1)
-    elif avisos:
-        print(f"\n⚠️  {len(avisos)} aviso(s). O café pode ficar bom, mas há margem para melhoria.")
-    else:
-        print("\n✅ Todos os parâmetros estão perfeitos. Bom café!")
-
+        print(f"\n☕ [BARISTA ENGINE] Perfil: {args.regiao.upper()}")
+        print(f"─" * 40)
+        print(f"Café: {params['cafe_g']}g | Água: {args.ml}ml")
+        print(f"Temperatura Ideal: {params['temp_alvo']}°C")
+        print(f"Configuração de Moagem: {params['moagem_ideal']}")
+        if alerts:
+            print("\n📋 ALERTAS E DIAGNÓSTICOS:")
+            for a in alerts: print(f"  {a}")
+        print(f"─" * 40)
 
 if __name__ == "__main__":
     main()
