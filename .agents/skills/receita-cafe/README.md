@@ -2,22 +2,31 @@
 
 Esta skill orquestra o preparo de cafés especiais brasileiros, unindo a ciência da extração com a arte do barismo.
 
-## 🔄 Fluxo de Inteligência
-Abaixo, o diagrama que mostra como o agente processa as variáveis técnicas e químicas:
+## 🔄 Fluxo de Inteligência (Engine Lifecycle)
 
-```mermaid
-graph TD
-    A[Início: Pedido] --> B{Região e Água?}
-    B --> C[Aplicar Matriz de Terroir]
-    B --> D[Validar TDS da Água]
-    C --> E[Sugerir Moagem e Proporção]
-    D --> E
-    E --> F[Execução: Blooming + Pulsos]
-    F --> G{Feedback de Tempo?}
-    G -- Lento --> H[💡 Sugerir Moer mais Grosso]
-    G -- Rápido --> I[💡 Sugerir Moer mais Fino]
-    G -- Ideal --> J[✅ Café Perfeito]
+O diagrama abaixo ilustra o ciclo de vida de uma extração. Este formato em **Unicode Art** garante a visualização correta em qualquer editor, terminal ou ambiente Git.
+
+```text
+┌────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│ Pedido Inicial │────▶│ Validação Terroir│────▶│ Sugestão de Setup   │
+└────────────────┘     └─────────┬────────┘     └──────────┬──────────┘
+                                 │                         │ 
+                       (Mogiana/Cerrado)        (Ratio/Moagem/Água)
+                                 │                         │
+                                 ▼                         ▼
+┌────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│ ✅ Café Final  │◀────│ Feedback Tempo   │◀────│ Execução Blooming   │
+└────────────────┘     └─────────┬────────┘     └─────────────────────┘
+                                 │
+                        (Lento/Rápido?)
+                                 │
+                                 ▼
+                       [Ajuste de Moagem]
 ```
+
+> 🖼️ **Visual Check:** Para uma visão detalhada do processo de barismo, consulte o infográfico em: `assets/flowchart.png`
+
+![Coffee Flow Infographic](assets/flowchart.png)
 
 ---
 
