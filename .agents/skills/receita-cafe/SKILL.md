@@ -15,10 +15,14 @@ metadata:
 interface:
   input:
     type: object
-    required: [volume_ml, regiao]
+    required: [volume_ml]
     properties:
       volume_ml: { type: integer, minimum: 150 }
       regiao: { type: string, enum: [mogiana, cerrado, sul_de_minas, espirito_santo, generico] }
+      cenario:
+        type: string
+        enum: [planning, debugging, deploy, code_review, documentation]
+        description: Cenário do time de dev para sugestão personalizada.
       intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
       moagem_ajustavel: { type: boolean, default: true }
   output:

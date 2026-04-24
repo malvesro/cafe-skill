@@ -15,6 +15,34 @@ TERROIRS = {
     "generico": {"ratio": 1/15, "temp": 93, "moagem": "Média", "notas": "Equilibrado"}
 }
 
+CENARIOS = {
+    "planning": {
+        "regiao": "mogiana", 
+        "insight": "Para estimativas que nunca atrasam (nos primeiros 5 minutos).",
+        "humor": "A doçura balanceada ajuda a aceitar aquele card que 'é só uma alteraçãozinha'."
+    },
+    "debugging": {
+        "regiao": "cerrado", 
+        "insight": "Se o bug for um NullPointerException, este café é o único objeto que não será nulo hoje.",
+        "humor": "Intenso e resiliente, como o desenvolvedor que não desiste do breakpoint."
+    },
+    "deploy": {
+        "regiao": "sul_de_minas", 
+        "insight": "Digno de um pipeline que passou de primeira. Notas complexas para um código estável.",
+        "humor": "Acidez vibrante para te manter alerta enquanto os logs de produção estabilizam."
+    },
+    "code_review": {
+        "regiao": "espirito_santo", 
+        "insight": "Limpo e transparente. Ideal para enxergar aquele code smell escondido no sub-módulo.",
+        "humor": "Um café com 'clean code' garantido pelo terroir."
+    },
+    "documentation": {
+        "regiao": "generico", 
+        "insight": "Volume alto e extração lenta. Perfeito para preencher o README que você procrastinou.",
+        "humor": "O café ideal para quando o único bug é a falta de comentários no código."
+    }
+}
+
 def diagnosticar_extração(tempo_seg):
     if tempo_seg < 180:
         return "⚠️ Fluxo muito rápido. Sugestão: Use uma moagem mais FINA para aumentar a resistência."
@@ -28,12 +56,23 @@ def main():
     parser.add_argument("--gramas", type=float, help="Peso do café")
     parser.add_argument("--temp", type=int, help="Temperatura")
     parser.add_argument("--tempo", type=int, help="Tempo total em segundos")
-    parser.add_argument("--regiao", type=str, default="generico")
+    parser.add_argument("--regiao", type=str)
+    parser.add_argument("--cenario", type=str, choices=CENARIOS.keys())
     parser.add_argument("--tds_agua", type=int, help="TDS da água (ppm)")
     parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
     args = parser.parse_args()
 
-    config = TERROIRS.get(args.regiao.lower(), TERROIRS["generico"])
+    # Lógica de cenário sobrepõe região se fornecido
+    res_regiao = args.regiao or "generico"
+    insight, humor = "", ""
+    
+    if args.cenario:
+        conf = CENARIOS[args.cenario]
+        res_regiao = conf["regiao"]
+        insight = conf["insight"]
+        humor = conf["humor"]
+
+    config = TERROIRS.get(res_regiao.lower(), TERROIRS["generico"])
     alerts = []
 
     # Alerta Químico de Água
@@ -47,26 +86,35 @@ def main():
 
     # Cálculo de Parâmetros
     params = {
-        "regiao": args.regiao,
+        "cenario": args.cenario,
+        "regiao": res_regiao,
         "cafe_g": round(args.ml * config["ratio"], 1) if args.ml else 0,
         "temp_alvo": config["temp"],
         "moagem_ideal": config["moagem"],
         "notas": config["notas"],
+        "insight_dev": insight,
+        "humor_barista": humor,
         "avisos_barista": alerts
     }
 
     if args.json:
-        print(json.dumps(params, indent=2))
+        print(json.dumps(params, indent=2, ensure_ascii=False))
     else:
-        print(f"\n☕ [BARISTA ENGINE] Perfil: {args.regiao.upper()}")
-        print(f"─" * 40)
+        title = f" [BARISTA ENGINE] Sugestão p/ {args.cenario.upper()}" if args.cenario else f" [BARISTA ENGINE] Perfil: {res_regiao.upper()}"
+        print(f"\n{title}")
+        print(f"─" * 45)
+        if insight: print(f"💡 {insight}")
+        if humor: print(f"🎭 {humor}")
+        print(f"─" * 45)
         print(f"Café: {params['cafe_g']}g | Água: {args.ml}ml")
-        print(f"Temperatura Ideal: {params['temp_alvo']}°C")
-        print(f"Configuração de Moagem: {params['moagem_ideal']}")
+        print(f"Temperatura: {params['temp_alvo']}°C | Moagem: {params['moagem_ideal']}")
         if alerts:
-            print("\n📋 ALERTAS E DIAGNÓSTICOS:")
+            print("\n📋 ALERTAS DO SISTEMA:")
             for a in alerts: print(f"  {a}")
-        print(f"─" * 40)
+        print(f"─" * 45)
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()

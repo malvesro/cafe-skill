@@ -25,6 +25,7 @@ O diagrama abaixo ilustra o ciclo de vida de uma extração. Este formato em **U
 ```
 
 ### 🧠 Visão de Estados (Complementar)
+
 Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
 ```mermaid
@@ -50,50 +51,96 @@ stateDiagram-v2
 
 ---
 
-## 🚀 Exemplos de Competência Avançada
+## 🚀 Como Usar (Prompt-First)
 
-### 1. Diagnóstico de Extração em Tempo Real
-**O que pedir:** *"Preparei 300ml de Cerrado com 20g de café, mas a extração demorou 5 minutos."*
+A forma recomendada de usar esta skill é através da **interface de chat** com o Agente de IA. O agente utiliza o `SKILL.md` como cérebro para entender seu pedido.
 
-**O que acontece:**
-O agente detecta que o tempo ideal é entre 3-4 minutos. 
-- **Diagnóstico:** "⚠️ Fluxo muito lento. Sugestão: Use uma moagem mais GROSSA para facilitar a passagem."
+### 1. Pedido Simples
+**Prompt:** *"Pode me sugerir e explicar como fazer 300ml de café da região Mogiana?"*
 
----
+### 2. Pedido Baseado em Cenário (Consultoria)
+**Prompt:** *"Estou em uma sessão crítica de debugging e preciso de café para 2 pessoas (400ml). O que você sugere?"*
+> O agente identificará o cenário, sugerirá o grão **Cerrado**, calculará as gramas exatas e fornecerá um insight de humor sobre o bug.
 
-### 2. Controle de Qualidade da Água (Sommelier Mode)
-**O que pedir:** *"Vou usar uma água com 250 ppm de minerais para fazer um Mogiana."*
-
-**O que acontece:**
-O agente acessa a base de química da água.
-- **Feedback:** "⚠️ Água muito dura (250 ppm). Isso pode neutralizar a acidez do seu Mogiana e gerar um sabor amargo e 'chapado'."
+### 3. Ajuste de Extração
+**Prompt:** *"Meu último café demorou 5 minutos para filtrar e ficou amargo. Como ajusto a moagem para 300ml de Sul de Minas?"*
 
 ---
 
-### 3. Modo Científico (Integração CLI)
-Para monitoramento e logs estruturados, utilize os novos parâmetros de diagnóstico:
+## ✅ Verificação Técnica e Automação
 
-**Comando:**
+Para desenvolvedores que desejam validar a lógica de forma determinística ou integrar a skill em pipelines, o motor de cálculo pode ser invocado via terminal:
+
+**Comando de Validação:**
 ```bash
-python scripts/validar_cafe.py --ml 400 --regiao sul_de_minas --tempo 150 --tds_agua 40 --json
+python3 scripts/validar_cafe.py --ml 250 --cenario debugging --json
 ```
 
-**Saída JSON com Insights:**
+**Saída Estruturada (Contrato):**
 ```json
 {
-  "regiao": "sul_de_minas",
-  "cafe_g": 28.6,
-  "temp_alvo": 90,
-  "moagem_ideal": "Média-Grossa",
-  "avisos_barista": [
-    "Água muito pura (mole). Café pode ficar sem corpo.",
-    "⚠️ Fluxo muito rápido. Sugestão: Use uma moagem mais FINA para aumentar a resistência."
-  ]
+  "cenario": "debugging",
+  "regiao": "cerrado",
+  "cafe_g": 16.7,
+  "temp_alvo": 94,
+  "moagem_ideal": "Média",
+  "insight_dev": "Se o bug for um NullPointerException...",
+  "avisos_barista": []
 }
 ```
 
 ---
 
+## 🤖 O Agente Autônomo: Validação nos Bastidores
+
+Nesta skill, a IA não é apenas um chatbot; ela é um **operador técnico**. Veja como o Agente utiliza o motor de validação de forma autônoma:
+
+### Cenário: "O Sentinela do Café" (Double-Check Automático)
+
+*O desenvolvedor pede um café para uma sessão de debugging, mas menciona que a água acabou de ferver.*
+
+1.  **O Gatilho:** Você diz: *"Barista, vou fazer um café para debugging agora. A água já ferveu, posso colocar?"*
+2.  **A Análise Interna:** O Agente lê seu pedido e identifica o risco térmico (água fervente). No `SKILL.md`, ele vê que existe uma ferramenta de validação.
+3.  **A Execução Silenciosa (Tool Call):** Antes de te responder, o Agente executa internamente:
+    ```bash
+    python3 scripts/validar_cafe.py --ml 300 --cenario debugging --temp 100 --json
+    ```
+4.  **O Processamento do Erro:** O script retorna um JSON informando: `"status": "FAILED", "errors": ["Água fervente detectada..."]`.
+5.  **A Resposta Inteligente:** Em vez de apenas dizer "não use água quente", o Agente entrega uma solução embasada:
+    > "Espere um momento! Acabei de rodar meu motor de validação e detectamos que 100°C vai queimar seu Cerrado. Deixe a água descansar por 60 segundos para atingirmos os 94°C ideais para o seu debugging. Enquanto isso, prepare os 25g de café."
+
+*Este ciclo demonstra o Agente usando **Raciocínio + Ferramenta** para evitar falhas no mundo real.*
+
+---
+
+## 🎭 A Jornada do Café: O Ciclo de Vida do Desenvolvedor
+
+Na engenharia de software, o café não é apenas energia; é um **estado mental**. Esta skill foi desenhada para acompanhar as flutuações de foco do seu time.
+
+### 🧪 Cenário 1: O Sprint Planning (Equilíbrio e Foco)
+*O time está reunido, as tasks ainda são estimativas e o backlog está limpo.*
+*   **Necessidade:** Um café que traga clareza mental e doçura para as discussões críticas.
+*   **Comando:** `"Barista, prepare uma Mogiana equilibrada para 6 pessoas (900ml)."`
+*   **O Agente responde:** 
+    > "Iniciando modo Planning. Aplicando Ratio 1:12 para destacar a doçura e notas de chocolate. Vamos calibrar para 75g de café moagem média-fina. Uma base sólida para um sprint promissor."
+
+### 🐛 Cenário 2: O Bug em Produção (Resiliência e Punch)
+*São 14h, um erro 500 está subindo nos logs e o time entrou em 'war room'.*
+*   **Necessidade:** Intensidade, corpo e resistência. Um café que sustente o raciocínio sob pressão.
+*   **Comando:** `"Preciso de um Cerrado intenso, 300ml, moagem para punch extra."`
+*   **O Agente responde:**
+    > "Modo War Room ativado. Reduzindo ratio para 1:11 e elevando temperatura para 94°C para extrair o máximo de corpo do Cerrado Mineiro. Diagnóstico extra: Verifique o TDS da água para evitar amargor excessivo sob alta temperatura."
+
+### 🚀 Cenário 3: O Deploy de Sexta (Celebração e Nuances)
+*A feature foi lançada, os testes passaram e o merge foi feito. Hora de apreciar a vitória.*
+*   **Necessidade:** Complexidade sensorial. Um café ácido e vibrante para um momento de descontração.
+*   **Comando:** `"Celebração: Sul de Minas, perfil frutado para um 'Done' bem feito."`
+*   **O Agente responde:**
+    > "Launch Mode! Aplicando a técnica de Sul de Minas (Ratio 1:15, 90°C). Vamos focar na acidez cítrica e corpo leve. Este é um café para ser apreciado lentamente enquanto os logs estabilizam no dashboard de monitoramento."
+
+---
+
 ## 🛠️ Manutenção e Expansão
+
 - **Adicionar Regiões:** Edite a matriz `TERROIRS` em `SKILL.md` e `validar_cafe.py`.
 - **Ajustar Regras:** As faixas de TDS de água e tempos de extração podem ser calibradas no arquivo `scripts/validar_cafe.py`.
