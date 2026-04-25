@@ -28,26 +28,31 @@ O diagrama abaixo ilustra o ciclo de vida de uma extração. Este formato em **U
 
 Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> Preparation: Iniciar Skill
-    Preparation --> Blooming: Despejo de Água (2x pó)
-    state Blooming {
-        [*] --> CO2_Release
-        CO2_Release --> Expansion
-    }
-    Blooming --> Extraction: 30s concluídos
-    Extraction --> QualityControl: Fluxo Encerrado
-    QualityControl --> Finished: Parâmetros OK
-    QualityControl --> Adjustment: Alerta de Tempo
-    Adjustment --> Idle: Calibrar Moagem
-    Finished --> [*]
+```text
+                               ESTADOS DA EXTRAÇÃO
+      ┌────────────────┐       ┌─────────────────┐       ┌───────────────────┐
+  ───▶│      IDLE      │───1──▶│   PREPARAÇÃO    │───2──▶│      BLOOMING     │
+      └────────────────┘       └─────────────────┘       └─────────┬─────────┘
+              ▲                                                    │
+              │                                          (Liberação de CO2 / 30s)
+      ┌───────┴────────┐                                           │
+      │   AJUSTE DE    │◀──────5───────[ FAIL ]──────────┐         ▼
+      │    MOAGEM      │                                 │   ┌───────────────┐
+      └────────────────┘                                 └───│      QA       │
+              ▲                                              │  (CHECKPOINT) │
+              │                                          ┌──▶└───────────────┘
+      ┌───────┴────────┐       ┌─────────────────┐       │         │
+      │    FINISHED    │◀──4───│    EXTRAÇÃO     │───3───┘      [ PASS ]
+      └────────────────┘       └─────────────────┘                 │
+                                                                   ▼
+                                                            ┌───────────────┐
+                                                            │ ✅ CAFÉ PRONTO │
+                                                            └───────────────┘
+
+  [1] Iniciar Skill  [2] Despejo (2x pó)  [3] Filtragem  [4] Parâmetros OK  [5] Tempo Errático
 ```
 
-> 🖼️ **Visual Check:** Para uma visão detalhada do processo de barismo, consulte o infográfico em: `assets/flowchart.png`
-
-![Coffee Flow Infographic](assets/flowchart.png)
+> 🖼️ **Visual Check:** Se o seu visualizador suportar imagens locais, consulte o infográfico detalhado em: `./assets/flowchart.png`
 
 ---
 
@@ -137,6 +142,70 @@ Na engenharia de software, o café não é apenas energia; é um **estado mental
 *   **Comando:** `"Celebração: Sul de Minas, perfil frutado para um 'Done' bem feito."`
 *   **O Agente responde:**
     > "Launch Mode! Aplicando a técnica de Sul de Minas (Ratio 1:15, 90°C). Vamos focar na acidez cítrica e corpo leve. Este é um café para ser apreciado lentamente enquanto os logs estabilizam no dashboard de monitoramento."
+
+---
+
+## 🏗️ Anatomia da Skill: Mergulho Técnico no `SKILL.md`
+
+Como arquiteto sênior, vou decompor exatamente o que compõe o "cérebro" da nossa **Advanced Brazilian Coffee Engine**. O arquivo `SKILL.md` desta skill não apenas descreve o que ela faz, mas implementa as regras de negócio que o Agente segue rigorosamente.
+
+### 1. O Contrato de Interface (Frontmatter YAML)
+O topo do arquivo define a "API" da skill. É aqui que estabelecemos o que o Agente precisa receber (Input) e o que ele promete entregar (Output).
+
+*   **Inputs Estruturados:** Note como definimos `volume_ml` como um inteiro (mínimo 150) e `regiao` como um `enum`. Isso evita que o Agente aceite entradas inválidas como "um pouquinho de café".
+*   **Cenários de Negócio:** O campo `cenario` é a nossa "Feature Toggle" contextual. Ele permite que a lógica de preparo mude se você está em um `debugging` tenso ou em um `deploy` festivo.
+
+```text
+                          O CONTRATO DE INTERFACE
+    ┌───────────────────────────┐         ┌───────────────────────────┐
+    │   INPUT (Prompt/JSON)     │         │    BUSINESS LOGIC (SKILL) │
+    │   - Volume: 150ml+        │────────▶│    - Terroir Matrix       │
+    │   - Região: Mogiana...    │         │    - Regras de Barismo    │
+    │   - Cenário: Debugging... │         │    - Diagnóstico de QA    │
+    └───────────────────────────┘         └─────────────┬─────────────┘
+                                                        │
+                              ┌─────────────────────────┴────────────────────────┐
+                              ▼                                                  ▼
+                 [Cerrado + Debugging]                            [Mogiana + Planning]
+                 Lógica: 94ºC | 1:15                              Lógica: 92ºC | 1:12
+                 Punch & Resiliência                              Foco & Doçura
+                              │                                                  │
+                              └─────────────────────────┬────────────────────────┘
+                                                        ▼
+                                          ┌───────────────────────────┐
+                                          │   OUTPUT (Resposta IA)    │
+                                          │   - Setup de Extração     │
+                                          │   - Insight Sensorial     │
+                                          └───────────────────────────┘
+```
+
+### 2. A Matriz de Decisão (Terroir Matrix)
+Diferente de um código `if/else` tradicional, a IA usa a tabela de **Terroir Matrix** no Markdown como um banco de dados de referência rápida:
+
+*   **Lookup Dinâmico:** Se você seleciona **Sul de Minas**, o Agente lê na tabela que a temperatura alvo é **90°C** e a moagem deve ser **Média-Grossa**. Isso democratiza a expertise de barismo para o código.
+*   **Notas Sensoriais:** O Agente usa os dados das notas (Chocolate, Nozes, Frutas Amarelas) para construir o insight de humor e motivação que ele entrega no final.
+
+### 3. O Motor de Diagnóstico e QA
+Esta skill implementa o que chamamos de **"Self-Healing Instructions"**:
+
+*   **Controle Químico:** O Agente é instruído a verificar o TDS (Total Dissolved Solids) da água (75-150 ppm). Se você reportar um café "plano", ele usará a seção de **Capacidades Avançadas** para diagnosticar que sua água pode estar muito pura.
+*   **Detecção de Bugs Físicos:** Através dos sintomas (Amargo/Cinza vs. Aguado/Azedo), o Agente atua como um depurador de moagem em tempo real, sugerindo ajustes granulares.
+
+### 4. Análise Passo a Passo do Protocolo Operacional
+O coração operacional do `SKILL.md` é o **Protocolo de Execução**. Como arquitetos, interpretamos esses passos como um algoritmo sequencial de alta precisão:
+
+| Passo | Objetivo Técnico | Lógica do Agente |
+| :--- | :--- | :--- |
+| **1. Setup Térmico** | Estabilização Térmica | Evita o "Erro de Pirólise" (queima do café) ao impor o limite de 94°C. |
+| **2. Purga Quente** | QA de Integridade | Garante que o "Hardware" (filtro) não injete ruído (gosto de papel) no sistema. |
+| **3. Blooming** | Hidratação e Purga de CO2 | Um `sleep(30s)` mandatório para permitir que a química da extração ocorra sem interferência de gases. |
+| **4. Extração em Pulsos** | Controle de Rendimento | Divide o fluxo em 40/60 para separar a extração de ácidos (Curva A) da extração de açúcares/corpo (Curva B). |
+
+### 5. O Ciclo de Feedback (QA & Diagnóstico)
+O `SKILL.md` fecha o loop com uma seção de **Gotchas**. Se o tempo de execução divergir do esperado (3:00 - 4:00 min), o Agente utiliza esta seção para rodar um diagnóstico de causa raiz, geralmente apontando para a granulometria da moagem.
+
+### 🧪 Conclusão para o Dev Júnior:
+No `receita-cafe`, o `SKILL.md` é o seu **System Design**. O YAML é o seu **Protocol Buffer/Swagger**, a Matrix de Terroir é o seu **Dataset**, e o Protocolo acima é o seu **Runtime Script/Workflow Logic**.
 
 ---
 
