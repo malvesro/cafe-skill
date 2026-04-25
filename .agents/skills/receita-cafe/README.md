@@ -79,6 +79,8 @@ A forma recomendada de usar esta skill é através da **interface de chat** com 
 ### 1. Pedido com Visual (Recomendado)
 **Prompt:** *"Pode me sugerir um café para debugging e gerar o infográfico de preparo?"*
 > O Agente calculará os parâmetros e invocará o motor visual, retornando o caminho da imagem e as instruções.
+> 
+> ✨ **Novo:** O Agente agora está instruído a incluir automaticamente o link e a renderização da imagem ao final de cada sugestão visual.
 
 ### 2. Pedido Baseado em Cenário (Consultoria)
 **Prompt:** *"Estou em uma sessão crítica de deploy e preciso de café para 2 pessoas. O que você sugere?"*

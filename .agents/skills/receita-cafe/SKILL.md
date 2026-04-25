@@ -50,7 +50,17 @@ python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --imagem
 
 O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png`. O campo `image_path` do output deve ser preenchido com o caminho retornado.
 
-**Quando gerar:** sempre que o pedido envolver um cenário específico de desenvolvimento (`debugging`, `deploy`, `planning`, `code_review`, `documentation`) ou quando o usuário pedir uma "visualização" ou "infográfico" da receita.
+### 📢 Diretrizes de Resposta do Agente
+Ao iniciar o atendimento, o Agente **deve**:
+1.  **Storytelling & Humor (Intro):** Antes de qualquer dado técnico, imagine e descreva a cena do usuário com um toque de humor "dev-friendly".
+2.  **Oferecer Opções de Formato:** Perguntar (ou seguir se já solicitado) se o usuário deseja o resultado no **Chat**, como um **Documento Markdown (.md)** estruturado na pasta `output/`, ou **Ambos**.
+
+Ao finalizar o atendimento, o Agente **deve**:
+1.  **Consolidar Entrega:**
+    *   **Se Chat:** Exibir o resumo técnico, link absoluto da imagem e renderizar o infográfico (`![Infográfico](caminho)`).
+    *   **Se Documento:** Criar um arquivo `output/receita_[cenario]_[timestamp].md` **PORTÁTIL**. Para garantir a renderização, a imagem deve ser incorporada diretamente no Markdown via **Base64 Data URI** (`![Infográfico](data:image/png;base64,...)`).
+    *   **Se Ambos:** Realizar as duas ações acima.
+2.  **Contextualizar:** Explicar como o café sugerido resolve as dores do cenário descrito.
 
 ---
 
