@@ -3,6 +3,7 @@
 validar_cafe.py — Engine de validação harmonizada (Didática + Técnica).
 """
 import sys
+import os
 import argparse
 import json
 
@@ -60,6 +61,7 @@ def main():
     parser.add_argument("--cenario", type=str, choices=CENARIOS.keys())
     parser.add_argument("--tds_agua", type=int, help="TDS da água (ppm)")
     parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
+    parser.add_argument("--imagem", action="store_true", help="Gera infográfico PNG da extracão")
     args = parser.parse_args()
 
     # Lógica de cenário sobrepõe região se fornecido
@@ -113,8 +115,20 @@ def main():
             for a in alerts: print(f"  {a}")
         print(f"─" * 45)
 
-if __name__ == "__main__":
-    main()
+    # → Geração de infográfico visual (Iteracão 3)
+    if args.imagem:
+        try:
+            # Adiciona volume_ml ao dict de params para o engine
+            params["volume_ml"] = args.ml or 0
+            engine_dir = os.path.join(os.path.dirname(__file__))
+            sys.path.insert(0, engine_dir)
+            from infografico_engine import gerar_infografico
+            img_path = gerar_infografico(params)
+            print(f"\n\U0001f5bc️  Infográfico gerado: {img_path}")
+        except ImportError:
+            print("\u26a0️  infografico_engine.py não encontrado. Execute a partir do diretório da skill.")
+        except Exception as e:
+            print(f"\u26a0️  Erro ao gerar imagem: {e}")
 
 if __name__ == "__main__":
     main()

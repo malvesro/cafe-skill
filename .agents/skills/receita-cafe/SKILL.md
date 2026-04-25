@@ -5,7 +5,7 @@ description: >
   padrão Agent Skills com o conhecimento sensorial do barista. 
   Capacidades: Cálculo de extração, Ajuste de Moagem, Perfil de Água e 
   Correção de Erros em Tempo Real.
-version: "2.1.0"
+version: "3.0.0"
 license: MIT
 metadata:
   author: coffee-engineer-senior
@@ -31,9 +31,28 @@ interface:
       parametros_finais: { type: object }
       alerta_qa: { type: array, items: { type: string } }
       protocolo_execucao: { type: string }
+      image_path:
+        type: string
+        description: >-
+          Caminho absoluto para o PNG do infográfico gerado.
+          Preencher quando o agente invocar o modo visual (--imagem).
 ---
 
-# ☕ Advanced Brazilian Coffee Engine (Harmonized v2.1)
+# ☕ Advanced Brazilian Coffee Engine (v3.0)
+
+## 🖼️ Output Visual (Infográfico)
+
+O agente **DEVE** gerar um infográfico PNG quando o usuário solicitar uma receita completa ou visualização do preparo. Invoque o engine visual com:
+
+```bash
+python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --imagem
+```
+
+O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png`. O campo `image_path` do output deve ser preenchido com o caminho retornado.
+
+**Quando gerar:** sempre que o pedido envolver um cenário específico de desenvolvimento (`debugging`, `deploy`, `planning`, `code_review`, `documentation`) ou quando o usuário pedir uma "visualização" ou "infográfico" da receita.
+
+---
 
 ## 🌟 Contexto Didático
 Um café excepcional é a intersecção entre **química e técnica**. Esta skill orquestra as variáveis de temperatura, turbulência e tempo, garantindo que o agente não apenas "informe", mas **garanta a qualidade** do resultado final.
