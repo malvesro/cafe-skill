@@ -56,42 +56,50 @@ Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
 ---
 
+## 🖼️ Galeria de Outputs Visuais (Novo!)
+
+A skill agora conta com um **motor de infográficos criativos** (v3.0). Cada cenário de desenvolvimento possui uma identidade visual única, gerada automaticamente para transformar dados técnicos em insights de alto impacto.
+
+| Cenário | Preview Visual | Mood / Aplicação |
+| :--- | :--- | :--- |
+| **Debugging** | `output/cafe_debugging_*.png` | War Room, Tensão, Resiliência. |
+| **Deploy** | `output/cafe_deploy_*.png` | Celebração, Vitória, Pipeline Verde. |
+| **Planning** | `output/cafe_planning_*.png` | Foco, Estratégia, Equilíbrio. |
+| **Code Review** | `output/cafe_code_review_*.png` | Precisão, Limpeza, Análise Técnica. |
+| **Doc Mode** | `output/cafe_documentation_*.png` | Conforto, Contemplação, Foco. |
+
+*Os arquivos são gerados no diretório `/output/` e seguem o padrão de nomenclatura `cafe_[cenario]_[timestamp].png`.*
+
+---
+
 ## 🚀 Como Usar (Prompt-First)
 
-A forma recomendada de usar esta skill é através da **interface de chat** com o Agente de IA. O agente utiliza o `SKILL.md` como cérebro para entender seu pedido.
+A forma recomendada de usar esta skill é através da **interface de chat** com o Agente de IA. O agente utiliza o `SKILL.md` como cérebro para entender seu pedido e o motor Python para gerar o visual.
 
-### 1. Pedido Simples
-**Prompt:** *"Pode me sugerir e explicar como fazer 300ml de café da região Mogiana?"*
+### 1. Pedido com Visual (Recomendado)
+**Prompt:** *"Pode me sugerir um café para debugging e gerar o infográfico de preparo?"*
+> O Agente calculará os parâmetros e invocará o motor visual, retornando o caminho da imagem e as instruções.
 
 ### 2. Pedido Baseado em Cenário (Consultoria)
-**Prompt:** *"Estou em uma sessão crítica de debugging e preciso de café para 2 pessoas (400ml). O que você sugere?"*
-> O agente identificará o cenário, sugerirá o grão **Cerrado**, calculará as gramas exatas e fornecerá um insight de humor sobre o bug.
+**Prompt:** *"Estou em uma sessão crítica de deploy e preciso de café para 2 pessoas. O que você sugere?"*
 
 ### 3. Ajuste de Extração
-**Prompt:** *"Meu último café demorou 5 minutos para filtrar e ficou amargo. Como ajusto a moagem para 300ml de Sul de Minas?"*
+**Prompt:** *"Meu último café ficou amargo. Como ajusto a moagem para 300ml de Sul de Minas?"*
 
 ---
 
 ## ✅ Verificação Técnica e Automação
 
-Para desenvolvedores que desejam validar a lógica de forma determinística ou integrar a skill em pipelines, o motor de cálculo pode ser invocado via terminal:
+Para desenvolvedores e automações, a skill pode ser invocada via terminal:
 
-**Comando de Validação:**
+**Comando de Validação (Modo Visual):**
 ```bash
-python3 scripts/validar_cafe.py --ml 250 --cenario debugging --json
+python3 scripts/validar_cafe.py --ml 250 --cenario debugging --imagem
 ```
 
-**Saída Estruturada (Contrato):**
-```json
-{
-  "cenario": "debugging",
-  "regiao": "cerrado",
-  "cafe_g": 16.7,
-  "temp_alvo": 94,
-  "moagem_ideal": "Média",
-  "insight_dev": "Se o bug for um NullPointerException...",
-  "avisos_barista": []
-}
+**Comando de Validação (Modo JSON):**
+```bash
+python3 scripts/validar_cafe.py --ml 250 --cenario debugging --json
 ```
 
 ---
