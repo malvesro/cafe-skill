@@ -8,6 +8,7 @@ import argparse
 import json
 import subprocess
 import shutil
+from datetime import datetime
 
 # Lógica de Negócio (Sync com SKILL.md v2.1)
 TERROIRS = {
@@ -94,6 +95,45 @@ def check_dependencies():
             print(f"❌ Falha no setup automático: {e}")
             print("Por favor, instale manualmente: pip install Pillow")
 
+def registrar_historico(params):
+    """Persiste a extração no histórico em formato JSON."""
+    history_file = os.path.join(os.path.dirname(__file__), "..", "data", "history.json")
+    
+    entry = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "cenario": params["cenario"],
+        "regiao": params["regiao"],
+        "volume_ml": params["volume_ml"],
+        "cafe_g": params["cafe_g"],
+        "pessoas": params["num_pessoas"]
+    }
+    
+    history = []
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r") as f:
+                content = f.read()
+                if content:
+                    history = json.loads(content)
+        except Exception:
+            history = []
+            
+    history.append(entry)
+    
+    with open(history_file, "w") as f:
+        json.dump(history, f, indent=2)
+
+def gerar_dashboard():
+    """Aciona o motor de analytics para gerar o infográfico de histórico."""
+    try:
+        engine_dir = os.path.dirname(__file__)
+        sys.path.insert(0, engine_dir)
+        from analytics_engine import processar_dashboard
+        img_path = processar_dashboard()
+        print(f"\n📊 Barista Analytics: {img_path}")
+    except Exception as e:
+        print(f"❌ Erro ao gerar dashboard: {e}")
+
 def diagnosticar_extração(tempo_seg):
     if tempo_seg < 180:
         return "⚠️ Fluxo muito rápido. Sugestão: Use uma moagem mais FINA para aumentar a resistência."
@@ -115,7 +155,12 @@ def main():
     parser.add_argument("--markdown", action="store_true", help="Gera documento Markdown portátil (.md) com imagem embutida")
     parser.add_argument("--story", type=str, help="Texto de storytelling/contexto rico para o documento.")
     parser.add_argument("--pessoas", type=int, default=1, help="Número de pessoas que serão servidas.")
+    parser.add_argument("--dashboard", action="store_true", help="Gera o infográfico de Analytics (Barista Histórico).")
     args = parser.parse_args()
+
+    if args.dashboard:
+        gerar_dashboard()
+        return
 
     # Lógica de cenário sobrepõe região se fornecido
     res_regiao = args.regiao or "generico"
@@ -163,6 +208,7 @@ def main():
     if args.json:
         print(json.dumps(params, indent=2, ensure_ascii=False))
     else:
+        registrar_historico(params)
         title = f" [BARISTA ENGINE] Sugestão p/ {params['cenario'].upper()}"
         print(f"\n{title}")
         print(f"─" * 45)

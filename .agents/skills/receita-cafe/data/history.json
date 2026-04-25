@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-04-25 16:30:57",
+    "cenario": "incident",
+    "regiao": "amazonico",
+    "volume_ml": 300,
+    "cafe_g": 27.3,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-25 16:30:57",
+    "cenario": "incident",
+    "regiao": "amazonico",
+    "volume_ml": 300,
+    "cafe_g": 27.3,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-25 16:30:57",
+    "cenario": "deploy",
+    "regiao": "sul_de_minas",
+    "volume_ml": 500,
+    "cafe_g": 35.7,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-25 16:30:57",
+    "cenario": "deploy",
+    "regiao": "sul_de_minas",
+    "volume_ml": 500,
+    "cafe_g": 35.7,
+    "pessoas": 1
+  }
+]

@@ -125,6 +125,27 @@ A skill agora conta com um **motor de infográficos criativos** (v3.1). Cada cen
 
 ---
 
+## 📊 Barista Analytics (Observabilidade)
+
+A partir da v4.0.0, sua skill não apenas faz café, ela **observa** seu time. Cada extração bem-sucedida é registrada em um banco de dados local (`data/history.json`).
+
+### O que o Analytics rastreia?
+*   **Stress Metrics:** Frequência de cenários como `incident` e `debugging`.
+*   **Resource Management:** Total de litros e gramas de café consumidos.
+*   **Impacto Humano:** Quantas pessoas foram servidas pelo Agente.
+
+### Como gerar seu Dashboard?
+Você pode solicitar um balanço do histórico a qualquer momento. O Agente gerará um infográfico exclusivo de dashboard:
+
+**Comando:**
+```bash
+python3 scripts/validar_cafe.py --dashboard
+```
+
+> 🎭 **Humor Barista:** Se o dashboard apontar muitos `incidents`, o sistema sugerirá automaticamente um grão com maior doçura para acalmar os ânimos!
+
+---
+
 ## 🚀 Como Usar (Prompt-First)
 
 A forma recomendada de usar esta skill é através da **interface de chat** com o Agente de IA. O agente utiliza o `SKILL.md` como cérebro para entender seu pedido e o motor Python para gerar o visual.

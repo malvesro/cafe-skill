@@ -3,8 +3,8 @@ name: receita-cafe
 description: >
   Engine avançada de extração de café. Harmoniza o rigor técnico do 
   padrão Agent Skills com o conhecimento sensorial do barista. 
-  Capacidades: Cálculo de extração, Ajuste de Moagem, Perfil de Água e 
-  Correção de Erros em Tempo Real.
+  Capacidades: Cálculo de extração, Ajuste de Moagem, Perfil de Água, 
+  Correção de Erros e Observabilidade de Consumo (Analytics).
 version: "3.0.0"
 license: MIT
 metadata:
@@ -26,6 +26,7 @@ interface:
       intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
       num_pessoas: { type: integer, minimum: 1, default: 1 }
       moagem_ajustavel: { type: boolean, default: true }
+      dashboard: { type: boolean, default: false, description: "Gera relatório de analytics" }
   output:
     type: object
     properties:
@@ -66,6 +67,7 @@ Ao finalizar o atendimento, o Agente **deve**:
     *   **Cenário de Reunião:** Se o cenário envolver reuniões (scrum, planning, topologies) e a quantidade não for dita, o Agente **deve suspender a execução e perguntar** "Para quantas pessoas será o café?".
     *   **Indicação Direta:** Se o usuário disser "Café para 5 pessoas" ou citar os participantes, inferir o número e calcular o volume base de **150ml por pessoa**.
 3.  **Contextualizar:** Explicar como o café sugerido resolve as dores do cenário descrito e **declarar explicitamente quantas pessoas a receita atende**.
+4.  **Oferta de Analytics:** Periodicamente ou quando o usuário solicitar "histórico" ou "balanço", o Agente deve oferecer a geração do **Dashboard de Analytics** (`--dashboard`) para auditar o nível de stress/café do time.
 
 ---
 
