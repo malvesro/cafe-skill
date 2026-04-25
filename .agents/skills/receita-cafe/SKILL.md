@@ -24,6 +24,7 @@ interface:
         enum: [planning, debugging, deploy, code_review, scrum, team_topologies, architecture, security, refactoring, incident, documentation]
         description: Cenário do time de dev para sugestão personalizada.
       intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
+      num_pessoas: { type: integer, minimum: 1, default: 1 }
       moagem_ajustavel: { type: boolean, default: true }
   output:
     type: object
@@ -60,7 +61,11 @@ Ao finalizar o atendimento, o Agente **deve**:
     *   **Se Chat:** Exibir o resumo técnico, link absoluto da imagem e renderizar o infográfico (`![Infográfico](caminho)`).
     *   **Se Documento:** Criar um arquivo `output/receita_[cenario]_[timestamp].md` **PORTÁTIL**. Para garantir a renderização, a imagem deve ser incorporada diretamente no Markdown via **Base64 Data URI** (`![Infográfico](data:image/png;base64,...)`).
     *   **Se Ambos:** Realizar as duas ações acima.
-2.  **Contextualizar:** Explicar como o café sugerido resolve as dores do cenário descrito.
+2.  **Lógica de Volume & Pessoas (Inferência):**
+    *   **Pedido Singular:** Se o usuário disser "Quero um café" ou "Faz um café", assumir `num_pessoas: 1`.
+    *   **Cenário de Reunião:** Se o cenário envolver reuniões (scrum, planning, topologies) e a quantidade não for dita, o Agente **deve suspender a execução e perguntar** "Para quantas pessoas será o café?".
+    *   **Indicação Direta:** Se o usuário disser "Café para 5 pessoas" ou citar os participantes, inferir o número e calcular o volume base de **150ml por pessoa**.
+3.  **Contextualizar:** Explicar como o café sugerido resolve as dores do cenário descrito e **declarar explicitamente quantas pessoas a receita atende**.
 
 ---
 

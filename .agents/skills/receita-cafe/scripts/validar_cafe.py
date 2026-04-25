@@ -6,6 +6,8 @@ import sys
 import os
 import argparse
 import json
+import subprocess
+import shutil
 
 # Lógica de Negócio (Sync com SKILL.md v2.1)
 TERROIRS = {
@@ -79,6 +81,19 @@ CENARIOS = {
     }
 }
 
+def check_dependencies():
+    """Garante que as dependências necessárias (Pillow) estejam presentes."""
+    try:
+        from PIL import Image
+    except ImportError:
+        print("🔧 Dependências faltando. Iniciando setup automático (Pillow)...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
+            print("✅ Setup concluído com sucesso!")
+        except Exception as e:
+            print(f"❌ Falha no setup automático: {e}")
+            print("Por favor, instale manualmente: pip install Pillow")
+
 def diagnosticar_extração(tempo_seg):
     if tempo_seg < 180:
         return "⚠️ Fluxo muito rápido. Sugestão: Use uma moagem mais FINA para aumentar a resistência."
@@ -98,6 +113,8 @@ def main():
     parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
     parser.add_argument("--imagem", action="store_true", help="Gera infográfico PNG da extracão")
     parser.add_argument("--markdown", action="store_true", help="Gera documento Markdown portátil (.md) com imagem embutida")
+    parser.add_argument("--story", type=str, help="Texto de storytelling/contexto rico para o documento.")
+    parser.add_argument("--pessoas", type=int, default=1, help="Número de pessoas que serão servidas.")
     args = parser.parse_args()
 
     # Lógica de cenário sobrepõe região se fornecido
@@ -113,6 +130,11 @@ def main():
     config = TERROIRS.get(res_regiao.lower(), TERROIRS["generico"])
     alerts = []
 
+    # Lógica de Inferência de Volume por Pessoas
+    volume_final = args.ml
+    if not volume_final and args.pessoas:
+        volume_final = args.pessoas * 150
+
     # Alerta Químico de Água
     if args.tds_agua:
         if args.tds_agua < 50: alerts.append("Água muito pura (mole). Café pode ficar sem corpo.")
@@ -126,13 +148,15 @@ def main():
     params = {
         "cenario": args.cenario or "generico",
         "regiao": res_regiao,
-        "cafe_g": round(args.ml * config["ratio"], 1) if args.ml else 0,
-        "volume_ml": args.ml or 0,
+        "cafe_g": round(volume_final * config["ratio"], 1) if volume_final else 0,
+        "volume_ml": volume_final or 0,
+        "num_pessoas": args.pessoas,
         "temp_alvo": config["temp"],
         "moagem_ideal": config["moagem"],
         "notas": config["notas"],
         "insight_dev": insight,
         "humor_barista": humor,
+        "story": args.story,
         "avisos_barista": alerts
     }
 
@@ -146,7 +170,8 @@ def main():
         if humor: print(f"🎭 {humor}")
         print(f"─" * 45)
         print(f"Café: {params['cafe_g']}g | Água: {params['volume_ml']}ml")
-        print(f"Temperatura: {params['temp_alvo']}°C | Moagem: {params['moagem_ideal']}")
+        print(f"Rendimento: {params['num_pessoas']} pessoa(s) | Moagem: {params['moagem_ideal']}")
+        print(f"Temperatura: {params['temp_alvo']}°C")
         if alerts:
             print("\n📋 ALERTAS DO SISTEMA:")
             for a in alerts: print(f"  {a}")
@@ -155,6 +180,7 @@ def main():
     # → Geração de infográfico visual (Iteracão 3)
     img_path = None
     if args.imagem:
+        check_dependencies()
         try:
             engine_dir = os.path.join(os.path.dirname(__file__))
             sys.path.insert(0, engine_dir)
@@ -177,25 +203,30 @@ def main():
             md_filename = f"receita_{params['cenario']}_{timestamp}.md"
             md_path = os.path.join(os.path.dirname(__file__), "..", "output", md_filename)
             
-            md_content = f"""# ☕ Protocolo de Café: {params['cenario'].capitalize()}
+            md_content = f"""# ☕ Protocolo de Café Especial: {params['cenario'].replace('_', ' ').capitalize()}
+            
+Este documento é uma extensão da inteligência do seu Agente, gerado de forma **autocontida** para levar a experiência do café perfeito para qualquer lugar.
 
-Este documento é **autocontido** e portátil, gerado automaticamente pela *Advanced Brazilian Coffee Engine*.
+## 🎬 Contexto e Storytelling
+{params['story'] if params['story'] else f"{insight}\n\n*{humor}*"}
 
-## 🎬 Contexto (Storytelling)
-{insight if insight else "Preparando um café excepcional para o momento atual."}
-*{humor if humor else "Foco e precisão técnica em cada gota."}*
+---
 
-## 🧪 Parâmetros Técnicos
-- **Região:** {params['regiao'].capitalize()} ({params['notas']})
-- **Proporção:** {params['cafe_g']}g de café para {params['volume_ml']}ml de água
-- **Temperatura Alvo:** {params['temp_alvo']}°C
+## 🧪 Engenharia de Extração
+Aqui estão os parâmetros técnicos calculados para garantir a máxima performance sensorial:
+
+- **Região Selecionada:** {params['regiao'].capitalize()}
+- **Perfil Sensorial:** {params['notas']}
+- **Receita:** {params['cafe_g']}g de café para {params['volume_ml']}ml de água
+- **Rendimento:** {params['num_pessoas']} pessoa(s) (aprox. 150ml p/ pessoa)
+- **Temperatura da Água:** {params['temp_alvo']}°C
 - **Moagem Sugerida:** {params['moagem_ideal']}
 
-## 📋 Protocolo de Execução
-1. **Setup:** Aquecer a água e escaldar o filtro.
-2. **Blooming:** Pré-infusão com 2x o peso do pó por 30s.
-3. **Extração:** Despejos circulares em pulsos (40%/60%).
-4. **Tempo:** 3:00 - 4:00 min.
+## 📋 Protocolo de Execução (The Golden Path)
+1. **Setup Térmico:** Aquecer a água ao alvo ({params['temp_alvo']}°C) e escaldar o filtro de papel para remover resíduos de celulose.
+2. **Pré-Infusão (Blooming):** Adicionar {round(params['cafe_g']*2, 1)}ml de água e aguardar 30 segundos. Sinta os gases saindo e preparando o pó.
+3. **Extração Primária:** Despejar lentamente 40% da água ({round(params['volume_ml']*0.4, 1)}ml) em movimentos circulares do centro para as bordas.
+4. **Finalização:** Adicionar o restante da água e aguardar a drenagem total. Tempo alvo: **3:30 - 4:00 min**.
 
 ---
 

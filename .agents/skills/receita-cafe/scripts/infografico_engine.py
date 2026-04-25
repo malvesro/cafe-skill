@@ -225,16 +225,17 @@ def _draw_header(draw: ImageDraw.ImageDraw, tema: dict, cenario: str, regiao_lab
 def _draw_metrics(draw: ImageDraw.ImageDraw, tema: dict, params: dict):
     """Painel central de métricas: 4 cards lado a lado."""
     metrics = [
+        ("PESSOAS", f"{params.get('num_pessoas', 1)}p",     "Rendimento"),
         ("CAFÉ",    f"{params.get('cafe_g', 0)}g",      "Peso do Pó"),
         ("ÁGUA",    f"{params.get('volume_ml', '—')}ml", "Volume Alvo"),
         ("TEMP",    f"{params.get('temp_alvo', 0)}°C",  "Temperatura"),
         ("MOAGEM",  params.get('moagem_ideal', '—'),     "Granulometria"),
     ]
 
-    # 4 cards entre x=20 e x=880
-    card_w = 200
+    # 5 cards entre x=20 e x=880
+    card_w = 160
     card_h = 90
-    gap = (W - 40 - 4 * card_w) // 3
+    gap = (W - 40 - 5 * card_w) // 4
     y0 = 100
 
     metric_bg = _hex(tema["metric_bg"])

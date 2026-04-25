@@ -1,6 +1,23 @@
-# 📖 Guia de Uso: Advanced Brazilian Coffee Engine (v2.1)
+# 📖 Guia de Uso: Advanced Brazilian Coffee Engine (v3.1.0)
 
 Esta skill orquestra o preparo de cafés especiais brasileiros, unindo a ciência da extração com a arte do barismo.
+
+## 📥 Pré-requisitos & Instalação
+
+Para que o motor visual e os cálculos técnicos funcionem corretamente, sua estação de trabalho (ou o ambiente do Agente) precisa:
+
+1.  **Python 3.8+** instalado.
+2.  **Biblioteca Pillow:** Responsável pela geração dos infográficos.
+
+### ⚡ Auto-Setup (Self-Healing)
+A partir da versão 3.1.0, a skill conta com inteligência de auto-inicialização. Na primeira vez que você solicitar um infográfico, o motor técnico:
+1.  Verifica se o **Pillow** está presente.
+2.  Caso não esteja, realiza a **instalação automática** via `pip`.
+3.  Notifica você no terminal sobre o progresso.
+
+Isso garante uma experiência **Zero Friction** e **Plug-and-Play**, ideal para ambientes de agentes autônomos e containers limpos.
+
+---
 
 ## 🔄 Fluxo de Inteligência (Engine Lifecycle)
 
@@ -23,6 +40,36 @@ O diagrama abaixo ilustra o ciclo de vida de uma extração. Este formato em **U
                                  ▼
                        [Ajuste de Moagem]
 ```
+
+---
+
+## ⚙️ Engenharia de Escala (Auto-Scaling Dose)
+
+A versão 3.1.0 introduz a **Engenharia de Escala**, tratando a dose de café como um recurso elástico. O sistema agora gerencia a relação entre o número de pessoas e os insumos técnicos (pó/água).
+
+### 📊 Fluxo de Dados e Cálculo
+Para um desenvolvedor júnior, imagine isso como um **Microserviço de Dosagem**:
+
+```text
+    USER INPUT                  AGENT REASONING                ENGINE CALC (Python)
+  ┌──────────────┐          ┌─────────────────────┐          ┌──────────────────────┐
+  │ "Reunião de  │─────────▶│ Inferência:         │─────────▶│ volume = pessoas * 150│
+  │  5 pessoas"  │          │ num_pessoas = 5     │          │ pó = volume * ratio  │
+  └──────────────┘          └──────────┬──────────┘          └──────────┬───────────┘
+                                       │                                │
+                                       ▼                                ▼
+                            ┌─────────────────────┐          ┌──────────────────────┐
+                            │ STORYTELLING ARG:   │◀─────────│ OUTPUTS:             │
+                            │ --story "Contexto.."│          │ - Infográfico (PNG)  │
+                            └─────────────────────┘          │ - Protocolo (MD)     │
+                                                              └──────────────────────┘
+```
+
+**Regras de Negócio aplicadas:**
+*   **Default Unit:** 150ml por pessoa (uma dose padrão de café especial).
+*   **Inferência Inteligente:** Se você disser "Quero um café", o agente assume `1 pessoa`. Se for uma `reunião`, o agente suspende a execução para perguntar o quorum, garantindo que não falte café no seu "deploy".
+
+---
 
 ### 🧠 Visão de Estados (Complementar)
 
@@ -58,12 +105,18 @@ Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
 ## 🖼️ Galeria de Outputs Visuais (Novo!)
 
-A skill agora conta com um **motor de infográficos criativos** (v3.0). Cada cenário de desenvolvimento possui uma identidade visual única, gerada automaticamente para transformar dados técnicos em insights de alto impacto.
+A skill agora conta com um **motor de infográficos criativos** (v3.1). Cada cenário de desenvolvimento possui uma identidade visual única, agora com um layout expandido de **5 métricas**.
+
+**O que há de novo no Infográfico:**
+*   **Card de PESSOAS:** Indica claramente para quantos "usuários" a receita foi escalonada.
+*   **Grid de 5 Colunas:** Layout otimizado para PESSOAS, CAFÉ, ÁGUA, TEMP e MOAGEM.
+*   **Storytelling embutido:** O texto rico e motivacional gerado pela IA agora é injetado no rodapé e no documento Markdown através do parâmetro `--story`.
 
 | Cenário | Preview Visual | Mood / Aplicação |
 | :--- | :--- | :--- |
 | **Debugging** | `output/cafe_debugging_*.png` | War Room, Tensão, Resiliência. |
 | **Deploy** | `output/cafe_deploy_*.png` | Celebração, Vitória, Pipeline Verde. |
+| **Team Topologies** | `output/cafe_team_topologies_*.png` | Alinhamento, Fluxos, Estrutura. |
 | **Planning** | `output/cafe_planning_*.png` | Foco, Estratégia, Equilíbrio. |
 | **Code Review** | `output/cafe_code_review_*.png` | Precisão, Limpeza, Análise Técnica. |
 | **Doc Mode** | `output/cafe_documentation_*.png` | Conforto, Contemplação, Foco. |
@@ -152,6 +205,30 @@ Na engenharia de software, o café não é apenas energia; é um **estado mental
 *   **Comando:** `"Celebração: Sul de Minas, perfil frutado para um 'Done' bem feito."`
 *   **O Agente responde:**
     > "Launch Mode! Aplicando a técnica de Sul de Minas (Ratio 1:15, 90°C). Vamos focar na acidez cítrica e corpo leve. Este é um café para ser apreciado lentamente enquanto os logs estabilizam no dashboard de monitoramento."
+
+---
+
+## 🛠️ Stack Tecnológica & Arquitetura
+
+Esta skill foi construída sob o princípio da **Simplicidade Robusta**, utilizando ferramentas de alta performance e baixa dependência externa para garantir a portabilidade do Agente.
+
+### 🧰 Tecnologias Core
+*   **Python 3.x:** A linguagem base da inteligência técnica. Escolhida por sua expressividade em regras de negócio e vasta biblioteca de manipulação de dados.
+*   **Pillow (PIL):** Motor de renderização do infográfico. Permite a criação dinâmica de composições 2D (gradientes, tipografia, ícones) sem a necessidade de bibliotecas pesadas de UI.
+*   **Argparse & JSON:** Utilizados para criar uma interface de comando (CLI) limpa e permitir que o Agente de IA "converse" com o código de forma estruturada.
+
+### 📂 Anatomia dos Scripts
+1.  **`scripts/validar_cafe.py` (O Orquestrador):**
+    *   **Papel:** Gerencia o *Business Logic* (matrizes de terroir e ratios).
+    *   **Responsabilidade:** Realiza o cálculo de escala (Dose/Volume), validação de QA (alertas térmicos) e a geração do documento Markdown portátil.
+2.  **`scripts/infografico_engine.py` (O Motor Visual):**
+    *   **Papel:** Responsável pela *Presentation Layer*.
+    *   **Responsabilidade:** Transforma o dicionário de parâmetros técnicos em um infográfico PNG com temas dinâmicos por cenário (War Room, Launch Mode, etc).
+
+### 📐 Escolhas Arquiteturais (Design Decisions)
+*   **Base64 Image Embedding:** Optamos por embutir as imagens via Base64 no Markdown. **Justificativa:** Isso torna o arquivo `.md` 100% autossuficiente (portátil), permitindo que ele seja compartilhado por e-mail ou Slack sem perder o infográfico.
+*   **Isolamento de Responsabilidade:** Separar o cálculo (`validar_cafe.py`) da renderização (`infografico_engine.py`) segue o princípio **SOLID**, facilitando a criação de novos temas visuais sem quebrar a lógica de extração.
+*   **Standard Lib First:** Priorizamos bibliotecas nativas do Python para reduzir o *Cold Start* e a necessidade de instalações complexas.
 
 ---
 
