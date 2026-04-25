@@ -18,10 +18,10 @@ interface:
     required: [volume_ml]
     properties:
       volume_ml: { type: integer, minimum: 150 }
-      regiao: { type: string, enum: [mogiana, cerrado, sul_de_minas, espirito_santo, generico] }
+      regiao: { type: string, enum: [mogiana, cerrado, sul_de_minas, espirito_santo, mantiqueira, chapada_diamantina, matas_de_minas, alta_mogiana, amazonico, generico] }
       cenario:
         type: string
-        enum: [planning, debugging, deploy, code_review, documentation]
+        enum: [planning, debugging, deploy, code_review, scrum, team_topologies, architecture, security, refactoring, incident, documentation]
         description: Cenário do time de dev para sugestão personalizada.
       intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
       moagem_ajustavel: { type: boolean, default: true }
@@ -77,6 +77,11 @@ Um café excepcional é a intersecção entre **química e técnica**. Esta skil
 | **Cerrado** | 1:15 | 94°C | Média | Nozes, Caramelo, Corpo Marcante |
 | **Sul de Minas** | 1:14 | 90°C | Média-Grossa | Frutas Amarelas, Acidez Cítrica |
 | **Espírito Santo** | 1:13 | 91°C | Média | Especiarias, Chocolate Amargo |
+| **Mantiqueira** | 1:12 | 92°C | Média-Fina | Aroma Marcante, Frutado, Nozes |
+| **Chapada Diamantina**| 1:14 | 93°C | Média | Aveludado, Cítrico, Final Longo |
+| **Matas de Minas** | 1:13 | 91°C | Média | Doçura, Caramelo, Chocolate |
+| **Alta Mogiana** | 1:12 | 92°C | Média-Fina | Encorpado, Acidez Média, Frutado |
+| **Robusta Amazônico**| 1:11 | 94°C | Grossa | Intenso, Amadeirado, Alta Cafeína |
 
 ---
 

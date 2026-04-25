@@ -9,37 +9,72 @@ import json
 
 # Lógica de Negócio (Sync com SKILL.md v2.1)
 TERROIRS = {
-    "mogiana": {"ratio": 1/12, "temp": 92, "moagem": "Média-Fina", "notas": "Doçura, Chocolate"},
-    "cerrado": {"ratio": 1/15, "temp": 94, "moagem": "Média", "notas": "Nozes, Caramelo"},
-    "sul_de_minas": {"ratio": 1/14, "temp": 90, "moagem": "Média-Grossa", "notas": "Acidez Cítrica"},
-    "espirito_santo": {"ratio": 1/13, "temp": 91, "moagem": "Média", "notas": "Especiarias"},
+    "mogiana": {"ratio": 1/12, "temp": 92, "moagem": "Média-Fina", "notas": "Doçura, Chocolate, Acidez Baixa"},
+    "cerrado": {"ratio": 1/15, "temp": 94, "moagem": "Média", "notas": "Nozes, Caramelo, Corpo Marcante"},
+    "sul_de_minas": {"ratio": 1/14, "temp": 90, "moagem": "Média-Grossa", "notas": "Frutas Amarelas, Acidez Cítrica"},
+    "espirito_santo": {"ratio": 1/13, "temp": 91, "moagem": "Média", "notas": "Especiarias, Chocolate Amargo"},
+    "mantiqueira": {"ratio": 1/12, "temp": 92, "moagem": "Média-Fina", "notas": "Aroma Marcante, Frutado, Notas de Nozes"},
+    "chapada_diamantina": {"ratio": 1/14, "temp": 93, "moagem": "Média", "notas": "Aveludado, Cítrico, Final Prolongado"},
+    "matas_de_minas": {"ratio": 1/13, "temp": 91, "moagem": "Média", "notas": "Doçura Notável, Caramelo, Chocolate"},
+    "alta_mogiana": {"ratio": 1/12, "temp": 92, "moagem": "Média-Fina", "notas": "Corpo Encorpado, Acidez Média, Frutado"},
+    "amazonico": {"ratio": 1/11, "temp": 94, "moagem": "Grossa", "notas": "Intenso, Amadeirado, Alta Cafeína"},
     "generico": {"ratio": 1/15, "temp": 93, "moagem": "Média", "notas": "Equilibrado"}
 }
 
 CENARIOS = {
     "planning": {
         "regiao": "mogiana", 
-        "insight": "Para estimativas que nunca atrasam (nos primeiros 5 minutos).",
-        "humor": "A doçura balanceada ajuda a aceitar aquele card que 'é só uma alteraçãozinha'."
+        "insight": "Sprint Planning: Estimativas que nunca atrasam (nos primeiros 5 minutos).",
+        "humor": "A doçura ajuda a aceitar aquele card que 'é só uma alteraçãozinha'."
     },
     "debugging": {
         "regiao": "cerrado", 
-        "insight": "Se o bug for um NullPointerException, este café é o único objeto que não será nulo hoje.",
-        "humor": "Intenso e resiliente, como o desenvolvedor que não desiste do breakpoint."
+        "insight": "Debugging: Se o bug for um NullPointerException, este café é o único objeto não nulo.",
+        "humor": "Intenso e resiliente, como o dev que não desiste do breakpoint."
     },
     "deploy": {
         "regiao": "sul_de_minas", 
-        "insight": "Digno de um pipeline que passou de primeira. Notas complexas para um código estável.",
+        "insight": "Deploy: Digno de um pipeline que passou de primeira. Notas complexas para código estável.",
         "humor": "Acidez vibrante para te manter alerta enquanto os logs de produção estabilizam."
     },
     "code_review": {
         "regiao": "espirito_santo", 
-        "insight": "Limpo e transparente. Ideal para enxergar aquele code smell escondido no sub-módulo.",
+        "insight": "Code Review: Limpo e transparente. Ideal para ver aquele code smell escondido.",
         "humor": "Um café com 'clean code' garantido pelo terroir."
+    },
+    "scrum": {
+        "regiao": "mantiqueira",
+        "insight": "Scrum Rituals: Equilíbrio e cadência. Ideal para Daily e Retrospectiva.",
+        "humor": "Corpo aveludado para suavizar os feedbacks da retrospectiva."
+    },
+    "team_topologies": {
+        "regiao": "chapada_diamantina",
+        "insight": "Team Topologies: Estruturando fluxos e domínios. Notas cítricas para clareza de fronteiras.",
+        "humor": "O café ideal para alinhar Cognitive Load com a arquitetura do time."
+    },
+    "architecture": {
+        "regiao": "matas_de_minas",
+        "insight": "Software Architecture: Complexidade e visão de alto nível. Notas encorpadas e complexas.",
+        "humor": "Tão bem estruturado quanto um diagrama C4 de nível 3."
+    },
+    "security": {
+        "regiao": "amazonico",
+        "insight": "Security/InfoSec: Alerta máximo. Robusta para garantir resiliência e foco total.",
+        "humor": "Mais cafeína que uma sessão de pentest de madrugada."
+    },
+    "refactoring": {
+        "regiao": "alta_mogiana",
+        "insight": "Refactoring: Limpeza e otimização. Doçura alta para tornar o legado suportável.",
+        "humor": "Removendo technical debt e adicionando aroma achocolatado."
+    },
+    "incident": {
+        "regiao": "amazonico",
+        "insight": "Incident Management: War Room. Café potente para restaurar o serviço em tempo recorde.",
+        "humor": "O SLA de 99.9% de disponibilidade começa nesta xícara."
     },
     "documentation": {
         "regiao": "generico", 
-        "insight": "Volume alto e extração lenta. Perfeito para preencher o README que você procrastinou.",
+        "insight": "Documentation: Volume alto e extração lenta. Perfeito para o README procrastinado.",
         "humor": "O café ideal para quando o único bug é a falta de comentários no código."
     }
 }
