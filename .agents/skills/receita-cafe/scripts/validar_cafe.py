@@ -62,6 +62,7 @@ def main():
     parser.add_argument("--tds_agua", type=int, help="TDS da água (ppm)")
     parser.add_argument("--json", action="store_true", help="Saída em formato JSON")
     parser.add_argument("--imagem", action="store_true", help="Gera infográfico PNG da extracão")
+    parser.add_argument("--markdown", action="store_true", help="Gera documento Markdown portátil (.md) com imagem embutida")
     args = parser.parse_args()
 
     # Lógica de cenário sobrepõe região se fornecido
@@ -88,9 +89,10 @@ def main():
 
     # Cálculo de Parâmetros
     params = {
-        "cenario": args.cenario,
+        "cenario": args.cenario or "generico",
         "regiao": res_regiao,
         "cafe_g": round(args.ml * config["ratio"], 1) if args.ml else 0,
+        "volume_ml": args.ml or 0,
         "temp_alvo": config["temp"],
         "moagem_ideal": config["moagem"],
         "notas": config["notas"],
@@ -102,13 +104,13 @@ def main():
     if args.json:
         print(json.dumps(params, indent=2, ensure_ascii=False))
     else:
-        title = f" [BARISTA ENGINE] Sugestão p/ {args.cenario.upper()}" if args.cenario else f" [BARISTA ENGINE] Perfil: {res_regiao.upper()}"
+        title = f" [BARISTA ENGINE] Sugestão p/ {params['cenario'].upper()}"
         print(f"\n{title}")
         print(f"─" * 45)
         if insight: print(f"💡 {insight}")
         if humor: print(f"🎭 {humor}")
         print(f"─" * 45)
-        print(f"Café: {params['cafe_g']}g | Água: {args.ml}ml")
+        print(f"Café: {params['cafe_g']}g | Água: {params['volume_ml']}ml")
         print(f"Temperatura: {params['temp_alvo']}°C | Moagem: {params['moagem_ideal']}")
         if alerts:
             print("\n📋 ALERTAS DO SISTEMA:")
@@ -116,19 +118,66 @@ def main():
         print(f"─" * 45)
 
     # → Geração de infográfico visual (Iteracão 3)
+    img_path = None
     if args.imagem:
         try:
-            # Adiciona volume_ml ao dict de params para o engine
-            params["volume_ml"] = args.ml or 0
             engine_dir = os.path.join(os.path.dirname(__file__))
             sys.path.insert(0, engine_dir)
             from infografico_engine import gerar_infografico
             img_path = gerar_infografico(params)
-            print(f"\n\U0001f5bc️  Infográfico gerado: {img_path}")
-        except ImportError:
-            print("\u26a0️  infografico_engine.py não encontrado. Execute a partir do diretório da skill.")
+            print(f"\n🖼️  Infográfico gerado: {img_path}")
         except Exception as e:
-            print(f"\u26a0️  Erro ao gerar imagem: {e}")
+            print(f"⚠️  Erro ao gerar imagem: {e}")
+
+    # → Geração de Documento Markdown Portátil (Estratégia Sênior)
+    if args.markdown and img_path:
+        try:
+            import base64
+            from datetime import datetime
+            
+            with open(img_path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            md_filename = f"receita_{params['cenario']}_{timestamp}.md"
+            md_path = os.path.join(os.path.dirname(__file__), "..", "output", md_filename)
+            
+            md_content = f"""# ☕ Protocolo de Café: {params['cenario'].capitalize()}
+
+Este documento é **autocontido** e portátil, gerado automaticamente pela *Advanced Brazilian Coffee Engine*.
+
+## 🎬 Contexto (Storytelling)
+{insight if insight else "Preparando um café excepcional para o momento atual."}
+*{humor if humor else "Foco e precisão técnica em cada gota."}*
+
+## 🧪 Parâmetros Técnicos
+- **Região:** {params['regiao'].capitalize()} ({params['notas']})
+- **Proporção:** {params['cafe_g']}g de café para {params['volume_ml']}ml de água
+- **Temperatura Alvo:** {params['temp_alvo']}°C
+- **Moagem Sugerida:** {params['moagem_ideal']}
+
+## 📋 Protocolo de Execução
+1. **Setup:** Aquecer a água e escaldar o filtro.
+2. **Blooming:** Pré-infusão com 2x o peso do pó por 30s.
+3. **Extração:** Despejos circulares em pulsos (40%/60%).
+4. **Tempo:** 3:00 - 4:00 min.
+
+---
+
+## 🖼️ Infográfico Técnico (Embedded)
+![Infográfico](data:image/png;base64,{encoded_string})
+
+---
+*Gerado em: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
+"""
+            with open(md_path, "w", encoding="utf-8") as md_file:
+                md_file.write(md_content)
+            print(f"📄 Documento Markdown portátil gerado: {os.path.abspath(md_path)}")
+        except Exception as e:
+            print(f"⚠️  Erro ao gerar Markdown: {e}")
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
