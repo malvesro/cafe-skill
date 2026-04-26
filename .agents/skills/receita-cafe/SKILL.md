@@ -48,7 +48,7 @@ interface:
 O agente **DEVE** gerar um infográfico PNG quando o usuário solicitar uma receita completa ou visualização do preparo. Invoque o engine visual com:
 
 ```bash
-python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --imagem --markdown
+python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --imagem --markdown
 ```
 
 O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png` e o documento portátil em `output/receita_<cenario>_<timestamp>.md`.

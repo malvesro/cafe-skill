@@ -148,6 +148,102 @@ def log_flow(step, description, files=None):
     if files:
         print(f"       📂 Recursos: {', '.join(files)}")
 
+def gerar_prompt_imagem(params):
+    """Gera o prompt de imagem usando o template de .agents/prompt_imagem_template.md"""
+    cenario = params.get("cenario", "generico")
+    regiao = params.get("regiao", "generico")
+    notas = params.get("notas", "café especial")
+    pessoas = params.get("num_pessoas", 1)
+    
+    # Mapeamento de variáveis conforme prompt_imagem_template.md
+    variaveis = {
+        "planning": {
+            "ESTILO_XICARA": "xícara de vidro transparente (clareza)",
+            "ESTILO_LUZ": "luz natural quente da manhã",
+            "ELEMENTO_HUMOR": "post-its coloridos com histórias de usuário",
+            "SIMBOLO_GEEK": "um colchete [ ]",
+            "CENARIO_DEV": "sprint planning com quadro Kanban"
+        },
+        "debugging": {
+            "ESTILO_XICARA": "caneca robusta de cerâmica",
+            "ESTILO_LUZ": "luz azulada de monitores com sombras dramáticas",
+            "ELEMENTO_HUMOR": "um patinho de borracha (Rubber Duck Debugging)",
+            "SIMBOLO_GEEK": "um terminal com código",
+            "CENARIO_DEV": "war room de debugging com múltiplos monitores"
+        },
+        "deploy": {
+            "ESTILO_XICARA": "caneca de cerâmica robusta e fosca",
+            "ESTILO_LUZ": "luz de neon verde (pipeline success)",
+            "ELEMENTO_HUMOR": "um post-it escrito 'PIPELINE GREEN'",
+            "SIMBOLO_GEEK": "um foguete decolando",
+            "CENARIO_DEV": "sala de deploy com telas mostrando logs"
+        },
+        "scrum": {
+            "ESTILO_XICARA": "xícara de porcelana minimalista",
+            "ESTILO_LUZ": "luz natural suave",
+            "ELEMENTO_HUMOR": "quadro com post-its coloridos",
+            "SIMBOLO_GEEK": "um checkmark",
+            "CENARIO_DEV": "daily standup meeting"
+        },
+        "incident": {
+            "ESTILO_XICARA": "caneca de cerâmica robusta",
+            "ESTILO_LUZ": "luz azulada de monitores com sombras dramáticas",
+            "ELEMENTO_HUMOR": "um patinho de borracha",
+            "SIMBOLO_GEEK": "um gráfico de métricas subindo",
+            "CENARIO_DEV": "war room de incident com dashboards"
+        },
+        "code_review": {
+            "ESTILO_XICARA": "xícara de vidro transparente",
+            "ESTILO_LUZ": "luz suave de escritório",
+            "ELEMENTO_HUMOR": "um teclado mecânico",
+            "SIMBOLO_GEEK": "um pull request merge",
+            "CENARIO_DEV": "code review em tela grande"
+        },
+        "architecture": {
+            "ESTILO_XICARA": "xícara de porcelana minimalista",
+            "ESTILO_LUZ": "luz suave e organizada",
+            "ELEMENTO_HUMOR": "um diagrama C4",
+            "SIMBOLO_GEEK": "uma engrenagem",
+            "CENARIO_DEV": "sessão de arquitetura com whiteboard"
+        },
+        "security": {
+            "ESTILO_XICARA": "caneca preta fosca",
+            "ESTILO_LUZ": "luz azulada de terminal",
+            "ELEMENTO_HUMOR": "um escudo",
+            "SIMBOLO_GEEK": "um cadeado",
+            "CENARIO_DEV": "análise de segurança"
+        },
+        "refactoring": {
+            "ESTILO_XICARA": "xícara de cerâmica moderna",
+            "ESTILO_LUZ": "luz suave e organizada",
+            "ELEMENTO_HUMOR": "código limpo e organizado",
+            "SIMBOLO_GEEK": "uma chave { }",
+            "CENARIO_DEV": "refatoração de código"
+        },
+        "team_topologies": {
+            "ESTILO_XICARA": "xícara de vidro",
+            "ESTILO_LUZ": "luz moderna",
+            "ELEMENTO_HUMOR": "nós conectados representando times",
+            "SIMBOLO_GEEK": "um grafo de conexões",
+            "CENARIO_DEV": "mapeamento de team topologies"
+        },
+        "documentation": {
+            "ESTILO_XICARA": "caneca clássica",
+            "ESTILO_LUZ": "luz suave de leitura",
+            "ELEMENTO_HUMOR": "um teclado mecânico clássico",
+            "SIMBOLO_GEEK": "um documento Markdown",
+            "CENARIO_DEV": "escrita de documentação"
+        }
+    }
+    
+    # Pegar variáveis do cenário ou usar defaults
+    vars_cenario = variaveis.get(cenario, variaveis["planning"])
+    
+    # Gerar o prompt conforme template
+    prompt = f"""Uma fotografia cinematográfica de alta resolução de uma xícara de café especial preparada na hora, servida em uma {vars_cenario['ESTILO_XICARA']}. O café é um {regiao.capitalize()} com notas de {notas}. Ao fundo, um ambiente de {vars_cenario['CENARIO_DEV']} com iluminação {vars_cenario['ESTILO_LUZ']}. É possível ver {vars_cenario['ELEMENTO_HUMOR']} próximo à xícara. Vapor sutil sobe do café, formando levemente o contorno de {vars_cenario['SIMBOLO_GEEK']}. Estilo visual premium, 8k, profundidade de campo rasa, focado na textura do café."""
+    
+    return prompt
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ml", type=int, help="Volume de água")
@@ -173,6 +269,18 @@ def main():
         if args.flow: log_flow("Módulo Analytics", "Acessando banco de dados de consumo para gerar dashboard.", ["data/history.json", "analytics_engine.py"])
         gerar_dashboard(flow=args.flow)
         return
+
+    # Cenários de reunião que requerem inferência de pessoas
+    CENARIOS_REUNIAO = ["planning", "scrum", "team_topologies", "debugging", "code_review", "architecture"]
+    
+    # Lógica de Inferência (SKILL.md item 2.2)
+    # Se cenário é reunião e pessoas não foi explicitado, inferir do volume
+    if args.cenario in CENARIOS_REUNIAO and args.pessoas == 1 and args.ml:
+        pessoas_inferidas = round(args.ml / 150)
+        if pessoas_inferidas > 1:
+            args.pessoas = pessoas_inferidas
+            if args.flow: 
+                log_flow("Inferência de Pessoas", f"Cenário de reunião detectado. Inferindo {pessoas_inferidas} pessoas (150ml/pessoa).", [])
 
     # Lógica de cenário sobrepõe região se fornecido
     res_regiao = args.regiao or "generico"
@@ -252,6 +360,16 @@ def main():
             print(f"\n🖼️  Infográfico gerado: {img_path}")
         except Exception as e:
             print(f"⚠️  Erro ao gerar imagem: {e}")
+
+    # → Geração de Prompt para Imagem Criativa (usando template prompt_imagem_template.md)
+    # O modelo de IA pode usar este prompt para gerar a imagem criativa do cenário
+    prompt_criativo = gerar_prompt_imagem(params)
+    print(f"\n🎨 PROMPT PARA IMAGEM CRIATIVA (use com ferramenta de geração de imagens):")
+    print(f"─" * 60)
+    print(prompt_criativo)
+    print(f"─" * 60)
+    if args.flow:
+        log_flow("Imagem Criativa", "Prompt gerado conforme template. O modelo de IA deve renderizar usando capacidade nativa.", [".agents/prompt_imagem_template.md"])
 
     # → Geração de Documento Markdown Portátil (Estratégia Sênior)
     if args.markdown and img_path:

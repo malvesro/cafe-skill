@@ -94,5 +94,133 @@
     "volume_ml": 2250,
     "cafe_g": 204.5,
     "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 18:35:09",
+    "cenario": "incident",
+    "regiao": "amazonico",
+    "volume_ml": 500,
+    "cafe_g": 45.5,
+    "pessoas": 3
+  },
+  {
+    "timestamp": "2026-04-26 18:35:09",
+    "cenario": "incident",
+    "regiao": "amazonico",
+    "volume_ml": 500,
+    "cafe_g": 45.5,
+    "pessoas": 3
+  },
+  {
+    "timestamp": "2026-04-26 19:02:46",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 500,
+    "cafe_g": 33.3,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-26 19:02:46",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 500,
+    "cafe_g": 33.3,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-26 19:04:30",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-26 19:04:30",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-26 19:04:42",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 4
+  },
+  {
+    "timestamp": "2026-04-26 19:04:42",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 4
+  },
+  {
+    "timestamp": "2026-04-26 19:06:15",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 4
+  },
+  {
+    "timestamp": "2026-04-26 19:06:15",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 600,
+    "cafe_g": 40.0,
+    "pessoas": 4
+  },
+  {
+    "timestamp": "2026-04-26 19:07:29",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 19:07:29",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 19:10:31",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 19:10:31",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 19:12:27",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 19:12:27",
+    "cenario": "planning",
+    "regiao": "mogiana",
+    "volume_ml": 2250,
+    "cafe_g": 187.5,
+    "pessoas": 15
   }
 ]
