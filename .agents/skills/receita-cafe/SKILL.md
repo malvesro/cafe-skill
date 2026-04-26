@@ -27,6 +27,7 @@ interface:
       num_pessoas: { type: integer, minimum: 1, default: 1 }
       moagem_ajustavel: { type: boolean, default: true }
       dashboard: { type: boolean, default: false, description: "Gera relatório de analytics" }
+      flow: { type: boolean, default: true, description: "Habilita o modo de rastreabilidade didática passo a passo (Ativado por padrão)" }
   output:
     type: object
     properties:

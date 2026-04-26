@@ -178,6 +178,14 @@ python3 scripts/validar_cafe.py --ml 250 --cenario debugging --imagem
 python3 scripts/validar_cafe.py --ml 250 --cenario debugging --json
 ```
 
+### 🛤️ Rastreabilidade Didática (NOVO!)
+A v4.1.0 introduz o parâmetro `--flow`. Este modo é focado no ensino, permitindo visualizar as decisões da IA e os recursos acessados em tempo real.
+
+**Comando:**
+```bash
+python3 scripts/validar_cafe.py --cenario team_topologies --flow
+```
+
 ---
 
 ## 🤖 O Agente Autônomo: Validação nos Bastidores
