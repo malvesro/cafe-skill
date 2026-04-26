@@ -23,8 +23,12 @@ def _get_font(size: int, bold: bool = False):
             return ImageFont.truetype(path, size)
     return ImageFont.load_default()
 
-def processar_dashboard():
+def processar_dashboard(flow: bool = False):
+    def _log_internal(step, desc):
+        if flow: print(f"       │  ├─ [DATA] {step}: {desc}")
+
     # 1. Carregar Dados
+    _log_internal("Fetch", "Acessando banco de dados de consumo histórico.")
     if not os.path.exists(DATA_FILE):
         return "Nenhum histórico disponível."
     
@@ -34,17 +38,7 @@ def processar_dashboard():
     if not history:
         return "Histórico vazio."
 
-    # 2. Calcular Estatísticas
-    total_ml = sum(e["volume_ml"] for e in history)
-    total_g = sum(e["cafe_g"] for e in history)
-    total_p = sum(e["pessoas"] for e in history)
-    scenarios = {}
-    for e in history:
-        s = e["cenario"]
-        scenarios[s] = scenarios.get(s, 0) + 1
-    
-    fav_cenario = max(scenarios, key=scenarios.get)
-    
+    _log_internal("Analyze", f"Processando {len(history)} registros para cálculo de KPIs.")
     # 3. Criar Imagem (Dashboard)
     bg_color = _hex("#0A0A12")
     accent = _hex("#F1C40F") # Gold
@@ -104,6 +98,7 @@ def processar_dashboard():
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"dashboard_barista_{ts}.png"
     path = os.path.join(OUTPUT_DIR, filename)
+    _log_internal("Export", f"Gerando dashboard visual em {filename}")
     img.save(path, "PNG")
     return path
 

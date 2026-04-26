@@ -386,7 +386,7 @@ def _draw_footer(draw: ImageDraw.ImageDraw, tema: dict, params: dict):
     draw.text((20, H - 28), ratio_label, font=font_small, fill=_hex(tema["accent2"]))
 
 
-def gerar_infografico(params: dict) -> str:
+def gerar_infografico(params: dict, flow: bool = False) -> str:
     """
     Gera um infográfico PNG baseado nos parâmetros da skill.
 
@@ -394,23 +394,31 @@ def gerar_infografico(params: dict) -> str:
         params: dict com chaves: cenario, regiao, cafe_g, temp_alvo,
                 moagem_ideal, notas, insight_dev, humor_barista,
                 avisos_barista, volume_ml.
+        flow: bool para habilitar logs de rastreabilidade.
 
     Returns:
         Caminho absoluto para o arquivo PNG gerado.
     """
+    def _log_internal(step, desc):
+        if flow: print(f"       │  ├─ [UI] {step}: {desc}")
+
     cenario = params.get("cenario") or "generico"
     tema = TEMAS.get(cenario, TEMAS["generico"])
     regiao_key = params.get("regiao", "generico") or "generico"
     regiao_label = REGIOES.get(regiao_key.lower(), f"☕ {regiao_key.title()}")
 
+    _log_internal("Setup", f"Carregando paleta '{cenario}' e imagens base.")
     # Criar imagem
     img = Image.new("RGB", (W, H), _hex(tema["bg_top"]))
     draw = ImageDraw.Draw(img)
 
+    _log_internal("Layout", "Renderizando gradientes, bordas e métricas técnicas.")
     _draw_gradient_bg(draw, tema)
     _draw_border(draw, tema)
     _draw_header(draw, tema, cenario, regiao_label)
     _draw_metrics(draw, tema, params)
+    
+    _log_internal("Conteúdo", "Injetando insights sensoriais e protocolo Golden Path.")
     _draw_insight(draw, tema, params)
     _draw_protocol(draw, tema)
     _draw_footer(draw, tema, params)
@@ -420,6 +428,7 @@ def gerar_infografico(params: dict) -> str:
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"cafe_{cenario}_{ts}.png"
     path = os.path.join(OUTPUT_DIR, filename)
+    _log_internal("Export", f"Gravando arquivo físico em {filename}")
     img.save(path, "PNG")
     return path
 

@@ -123,13 +123,13 @@ def registrar_historico(params):
     with open(history_file, "w") as f:
         json.dump(history, f, indent=2)
 
-def gerar_dashboard():
+def gerar_dashboard(flow=False):
     """Aciona o motor de analytics para gerar o infográfico de histórico."""
     try:
         engine_dir = os.path.dirname(__file__)
         sys.path.insert(0, engine_dir)
         from analytics_engine import processar_dashboard
-        img_path = processar_dashboard()
+        img_path = processar_dashboard(flow=flow)
         print(f"\n📊 Barista Analytics: {img_path}")
     except Exception as e:
         print(f"❌ Erro ao gerar dashboard: {e}")
@@ -140,6 +140,13 @@ def diagnosticar_extração(tempo_seg):
     if tempo_seg > 270:
         return "⚠️ Fluxo muito lento. Sugestão: Use uma moagem mais GROSSA para facilitar a passagem."
     return "✅ Tempo de extração perfeito."
+
+def log_flow(step, description, files=None):
+    """Exibe o fluxo de execução de forma didática."""
+    print(f"\n[FLOW] 🛤️ {step.upper()}")
+    print(f"       └─ {description}")
+    if files:
+        print(f"       📂 Recursos: {', '.join(files)}")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -156,10 +163,15 @@ def main():
     parser.add_argument("--story", type=str, help="Texto de storytelling/contexto rico para o documento.")
     parser.add_argument("--pessoas", type=int, default=1, help="Número de pessoas que serão servidas.")
     parser.add_argument("--dashboard", action="store_true", help="Gera o infográfico de Analytics (Barista Histórico).")
+    parser.add_argument("--flow", action="store_true", default=True, help="Habilita o modo de rastreabilidade passo a passo (Padrão: Ativo).")
     args = parser.parse_args()
 
+    if args.flow:
+        log_flow("Início da Skill", "O Agente foi invocado e está inicializando a Engine de Extração.", ["validar_cafe.py", "SKILL.md"])
+
     if args.dashboard:
-        gerar_dashboard()
+        if args.flow: log_flow("Módulo Analytics", "Acessando banco de dados de consumo para gerar dashboard.", ["data/history.json", "analytics_engine.py"])
+        gerar_dashboard(flow=args.flow)
         return
 
     # Lógica de cenário sobrepõe região se fornecido
@@ -167,17 +179,20 @@ def main():
     insight, humor = "", ""
     
     if args.cenario:
+        if args.flow: log_flow("Análise de Contexto", f"Mapeando o cenário '{args.cenario}' para um perfil sensorial específico.")
         conf = CENARIOS[args.cenario]
         res_regiao = conf["regiao"]
         insight = conf["insight"]
         humor = conf["humor"]
 
     config = TERROIRS.get(res_regiao.lower(), TERROIRS["generico"])
+    if args.flow: log_flow("Cálculo de Extração", f"Aplicando Ratio técnico 1:{int(1/config['ratio'])} para a região {res_regiao}.")
     alerts = []
 
     # Lógica de Inferência de Volume por Pessoas
     volume_final = args.ml
     if not volume_final and args.pessoas:
+        if args.flow: log_flow("Inferência de Volume", f"Calculando volume base de 150ml p/ {args.pessoas} pessoa(s).")
         volume_final = args.pessoas * 150
 
     # Alerta Químico de Água
@@ -208,6 +223,7 @@ def main():
     if args.json:
         print(json.dumps(params, indent=2, ensure_ascii=False))
     else:
+        if args.flow: log_flow("Persistência de Dados", "Registrando a extração no histórico de consumo do time.", ["data/history.json"])
         registrar_historico(params)
         title = f" [BARISTA ENGINE] Sugestão p/ {params['cenario'].upper()}"
         print(f"\n{title}")
@@ -226,18 +242,22 @@ def main():
     # → Geração de infográfico visual (Iteracão 3)
     img_path = None
     if args.imagem:
+        if args.flow: log_flow("Renderização Visual", "Invocando engine gráfica para gerar infográfico da receita.", ["infografico_engine.py", "assets/"])
         check_dependencies()
         try:
             engine_dir = os.path.join(os.path.dirname(__file__))
             sys.path.insert(0, engine_dir)
             from infografico_engine import gerar_infografico
-            img_path = gerar_infografico(params)
+            img_path = gerar_infografico(params, flow=args.flow)
             print(f"\n🖼️  Infográfico gerado: {img_path}")
         except Exception as e:
             print(f"⚠️  Erro ao gerar imagem: {e}")
 
     # → Geração de Documento Markdown Portátil (Estratégia Sênior)
     if args.markdown and img_path:
+        if args.flow: 
+            log_flow("Storytelling Strategy", "Consolidando regras narrativas para geração do contexto visual.", [".agents/prompt_imagem_template.md"])
+            log_flow("Empacotamento", "Gerando documento Markdown portátil com imagem embutida em Base64.", ["output/"])
         try:
             import base64
             from datetime import datetime
