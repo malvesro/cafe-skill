@@ -3,11 +3,12 @@ import os
 import json
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+from output_paths import resolve_output_dir
 
 # Importar helpers do infografico_engine se possível, mas vamos manter isolado para robustez
 W, H = 900, 600
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
-DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "history.json")
+OUTPUT_DIR = resolve_output_dir()
+DATA_FILE = os.path.join(OUTPUT_DIR, "history.json")
 
 def _hex(color: str):
     c = color.lstrip("#")

@@ -9,6 +9,7 @@ import json
 import subprocess
 import shutil
 from datetime import datetime
+from output_paths import resolve_output_dir
 
 # Lógica de Negócio (Sync com SKILL.md v2.1)
 TERROIRS = {
@@ -82,6 +83,9 @@ CENARIOS = {
     }
 }
 
+OUTPUT_DIR = resolve_output_dir()
+HISTORY_FILE = os.path.join(OUTPUT_DIR, "history.json")
+
 def check_dependencies():
     """Garante que as dependências necessárias (Pillow) estejam presentes."""
     try:
@@ -97,8 +101,9 @@ def check_dependencies():
 
 def registrar_historico(params):
     """Persiste a extração no histórico em formato JSON."""
-    history_file = os.path.join(os.path.dirname(__file__), "..", "data", "history.json")
-    
+    history_file = HISTORY_FILE
+    os.makedirs(os.path.dirname(history_file), exist_ok=True)
+
     entry = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "cenario": params["cenario"],
@@ -353,7 +358,7 @@ def main():
     if args.json:
         print(json.dumps(params, indent=2, ensure_ascii=False))
     else:
-        if args.flow: log_flow("Persistência de Dados", "Registrando a extração no histórico de consumo do time.", ["data/history.json"])
+        if args.flow: log_flow("Persistência de Dados", "Registrando a extração no histórico de consumo do time.", [HISTORY_FILE])
         registrar_historico(params)
         title = f" [BARISTA ENGINE] Sugestão p/ {params['cenario'].upper()}"
         print(f"\n{title}")
@@ -397,7 +402,7 @@ def main():
     if args.markdown and img_path:
         if args.flow: 
             log_flow("Storytelling Strategy", "Consolidando regras narrativas para geração do contexto visual.", [".agents/prompt_imagem_template.md"])
-            log_flow("Empacotamento", "Gerando documento Markdown portátil com imagem embutida em Base64.", ["output/"])
+            log_flow("Empacotamento", "Gerando documento Markdown portátil com imagem embutida em Base64.", [OUTPUT_DIR])
         try:
             import base64
             from datetime import datetime
@@ -407,7 +412,8 @@ def main():
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             md_filename = f"receita_{params['cenario']}_{timestamp}.md"
-            md_path = os.path.join(os.path.dirname(__file__), "..", "output", md_filename)
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            md_path = os.path.join(OUTPUT_DIR, md_filename)
             
             md_content = f"""# ☕ Protocolo de Café Especial: {params['cenario'].replace('_', ' ').capitalize()}
             

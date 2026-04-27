@@ -14,6 +14,7 @@ import json
 import argparse
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+from output_paths import resolve_output_dir
 
 
 # ─────────────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ REGIOES = {
 }
 
 W, H = 900, 560
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+OUTPUT_DIR = resolve_output_dir()
 
 
 def _hex(color: str):

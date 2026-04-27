@@ -14,11 +14,12 @@ import sys
 from datetime import datetime
 
 from flow_trace_engine import append_jsonl, event, load_jsonl, write_artifacts
+from output_paths import resolve_output_dir
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
-OUTPUT_DIR = os.path.join(SKILL_DIR, "output")
+OUTPUT_DIR = resolve_output_dir()
 VALIDAR_CAFE = os.path.join(SCRIPT_DIR, "validar_cafe.py")
 
 
