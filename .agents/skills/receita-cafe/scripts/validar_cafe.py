@@ -141,12 +141,34 @@ def diagnosticar_extração(tempo_seg):
         return "⚠️ Fluxo muito lento. Sugestão: Use uma moagem mais GROSSA para facilitar a passagem."
     return "✅ Tempo de extração perfeito."
 
+def emit_flow_event(step, description, files=None):
+    """Persiste evento JSONL obrigatorio quando o wrapper define o destino."""
+    trace_path = os.environ.get("RECEITA_CAFE_FLOW_JSONL")
+    if not trace_path:
+        return
+    try:
+        engine_dir = os.path.dirname(__file__)
+        sys.path.insert(0, engine_dir)
+        from flow_trace_engine import append_jsonl, event
+
+        append_jsonl(trace_path, event(
+            phase="deterministic_runtime",
+            step_id=step.lower().replace(" ", "_"),
+            title=step,
+            status="ok",
+            decision=description,
+            files_read=files or [],
+        ))
+    except Exception as exc:
+        print(f"⚠️  Erro ao registrar Flow Trace estruturado: {exc}")
+
 def log_flow(step, description, files=None):
     """Exibe o fluxo de execução de forma didática."""
     print(f"\n[FLOW] 🛤️ {step.upper()}")
     print(f"       └─ {description}")
     if files:
         print(f"       📂 Recursos: {', '.join(files)}")
+    emit_flow_event(step, description, files)
 
 def gerar_prompt_imagem(params):
     """Gera o prompt de imagem usando o template de .agents/prompt_imagem_template.md"""

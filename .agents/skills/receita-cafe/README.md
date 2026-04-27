@@ -156,6 +156,52 @@ A forma recomendada de usar esta skill é através da **interface de chat** com 
 > 
 > ✨ **Novo:** O Agente agora está instruído a incluir automaticamente o link e a renderização da imagem ao final de cada sugestão visual.
 
+### Runtime Completo Obrigatório
+Para pedidos de receita completa, sugestão de café para cenário, reunião/time ou visualização, o Agente deve executar o wrapper canonico. Isso evita o uso apenas conceitual da skill e garante Flow Tracer, PNG tecnico, Markdown portatil, prompt criativo rastreavel e manifesto de runtime.
+
+**Comando recomendado:**
+```bash
+python3 scripts/receita_completa.py --cenario team_topologies --pessoas 8
+```
+
+O wrapper falha a execução se algum item essencial não for encontrado:
+*   Flow Tracer real (`[FLOW]`).
+*   Infografico tecnico em `output/cafe_[cenario]_[timestamp].png`.
+*   Markdown portatil em `output/receita_[cenario]_[timestamp].md`.
+*   Imagem embutida no Markdown via `data:image/png;base64`.
+*   Prompt criativo persistido em `output/prompt_criativo_[cenario]_[timestamp].txt`.
+*   Manifesto persistido em `output/runtime_manifest_[cenario]_[timestamp].json`.
+*   Flow Trace JSONL, JSON e HTML persistidos em `output/flow_trace_[cenario]_[timestamp].*`.
+*   Links de telemetria inseridos no Markdown portatil.
+
+### Telemetria Didatica Obrigatoria
+A rastreabilidade nao e opcional nesta skill. Cada execucao completa gera tres camadas de observabilidade:
+
+1. **Tempo real no console:** eventos `[FLOW]` mostram o que esta acontecendo enquanto a skill roda.
+2. **Auditoria estruturada:** `flow_trace_*.jsonl` e `flow_trace_*.json` registram decisoes, arquivos usados e artefatos.
+3. **Visualizacao amigavel:** `flow_trace_*.html` renderiza uma timeline com fases, status, decisoes, recursos e outputs.
+
+O manifesto referencia esses tres arquivos, e o Markdown portatil inclui uma secao `Telemetria da Execução` com links para eles.
+
+### Runtime de Imagem Criativa
+A imagem criativa e uma fase **agent-native**: o Python prepara o prompt e o manifesto; o Agente executa a ferramenta nativa de imagem e finaliza o contrato.
+
+Fluxo esperado:
+1. Execute `scripts/receita_completa.py`.
+2. Leia `creative_prompt_path` no manifesto.
+3. Gere a imagem criativa com a ferramenta nativa de imagem.
+4. Copie o PNG para `suggested_creative_image_path`.
+5. Finalize o manifesto:
+   ```bash
+   python3 scripts/finalizar_imagem_criativa.py \
+     --manifest output/runtime_manifest_<cenario>_<timestamp>.json \
+     --creative-image-path output/imagem_criativa_<cenario>_<timestamp>.png
+   ```
+
+Uma entrega multimodal so esta completa quando o manifesto retornar `status: "ok"`, `completion_allowed: true`, `multimodal_status: "ok"` e `creative_image_path` apontar para um PNG existente.
+
+Se `scripts/receita_completa.py` retornar `status: "pending_multimodal"`, o Agente nao deve responder ainda. Ele deve seguir `agent_next_action`, gerar a imagem criativa com a ferramenta nativa de imagem, salvar no `suggested_creative_image_path` e executar `scripts/finalizar_imagem_criativa.py`.
+
 ### 2. Pedido Baseado em Cenário (Consultoria)
 **Prompt:** *"Estou em uma sessão crítica de deploy e preciso de café para 2 pessoas. O que você sugere?"*
 
@@ -170,7 +216,12 @@ Para desenvolvedores e automações, a skill pode ser invocada via terminal:
 
 **Comando de Validação (Modo Visual):**
 ```bash
-python3 scripts/validar_cafe.py --ml 250 --cenario debugging --imagem
+python3 scripts/receita_completa.py --cenario debugging --pessoas 2
+```
+
+**Comando direto do motor base:**
+```bash
+python3 scripts/validar_cafe.py --ml 250 --cenario debugging --flow --imagem --markdown
 ```
 
 **Comando de Validação (Modo JSON):**
@@ -253,6 +304,12 @@ Esta skill foi construída sob o princípio da **Simplicidade Robusta**, utiliza
 2.  **`scripts/infografico_engine.py` (O Motor Visual):**
     *   **Papel:** Responsável pela *Presentation Layer*.
     *   **Responsabilidade:** Transforma o dicionário de parâmetros técnicos em um infográfico PNG com temas dinâmicos por cenário (War Room, Launch Mode, etc).
+3.  **`scripts/receita_completa.py` (O Runtime Canonico):**
+    *   **Papel:** Evita execucao conceitual da skill.
+    *   **Responsabilidade:** Invoca `validar_cafe.py` com `--flow --imagem --markdown`, valida os artefatos obrigatorios e imprime/persiste um manifesto JSON com os caminhos finais.
+4.  **`scripts/finalizar_imagem_criativa.py` (O Fechamento Multimodal):**
+    *   **Papel:** Conecta a imagem gerada pelo Agente ao manifesto da skill.
+    *   **Responsabilidade:** Valida o PNG criativo, preenche `creative_image_path` e muda `multimodal_status` para `ok`.
 
 ### 📐 Escolhas Arquiteturais (Design Decisions)
 *   **Base64 Image Embedding:** Optamos por embutir as imagens via Base64 no Markdown. **Justificativa:** Isso torna o arquivo `.md` 100% autossuficiente (portátil), permitindo que ele seja compartilhado por e-mail ou Slack sem perder o infográfico.

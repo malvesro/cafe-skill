@@ -22,12 +22,12 @@ sequenceDiagram
     U->>A: Pedido (Ex: "Café para Deploy")
     A->>C: Consulta de Regras & Interface
     C-->>A: Parâmetros (Ratio, Terroir, Modo)
-    A->>S: Execução via CLI (validar_cafe.py --flow)
+    A->>S: Execução via CLI (receita_completa.py)
     Note over S: Flow Tracer Ativado
     S->>S: Cálculo de Scaling & Terroir
     S->>S: Geração de UI (infografico_engine.py)
     S-->>O: Gravação de Ativos
-    S-->>A: Retorno Técnico + Logs de Fluxo
+    S-->>A: Retorno Técnico + Logs de Fluxo + Manifesto
     A->>U: Resposta Final (Storytelling + Receita + Imagem)
 ```
 
@@ -57,7 +57,7 @@ graph TD
 Se você é novo no projeto, aqui está como interpretar a nossa engenharia baseada nestes diagramas:
 
 1.  **O Despachante (Agente IA):** Ele não "inventa" receitas. Ele atua como um gerente de projeto que lê o contrato (`SKILL.md`) e decide quais parâmetros passar para o motor técnico.
-2.  **O Flow Tracer (Nó Rosa):** Este é o nosso diferencial didático. Quando ativo, ele obriga o código a revelar seu estado interno e quais arquivos estão sendo acessados. É o equivalente a um modo `DEBUG` que ensina enquanto executa.
+2.  **O Flow Tracer (Nó Rosa):** Este é o nosso diferencial didático. Quando ativo, ele obriga o código a revelar seu estado interno e quais arquivos estão sendo acessados. É o equivalente a um modo `DEBUG` que ensina enquanto executa. O caminho recomendado é `scripts/receita_completa.py`, que sempre aciona `--flow --imagem --markdown` e valida a entrega.
 3.  **O Rendering Engine (Nó Azul):** Demonstra a separação de responsabilidades. O cálculo técnico é puramente lógico, enquanto a renderização do infográfico é delegada a um módulo especialista em UI.
 
 ---
@@ -99,6 +99,9 @@ Nossa flagship skill, a `receita-cafe`, é o exemplo perfeito de como uma "Skill
 *   **Observabilidade (Barista Analytics):** Um sistema de telemetria que rastreia o consumo por cenário e gera dashboards de estresse do time.
 *   **Rastreabilidade Didática (Flow Tracer):** O fim da "caixa-preta". A skill detalha cada decisão técnica em tempo real, do contrato ao PNG.
 *   **Output Multimodal:** Gera documentos Markdown portáteis e infográficos visuais de alto impacto prontos para apresentação.
+*   **Runtime Canônico:** O wrapper `scripts/receita_completa.py` impede a execução apenas conceitual da skill, valida PNG, Markdown, Base64 embutido, Flow Tracer, prompt criativo rastreável e manifesto persistido.
+*   **Creative Image Runtime:** A imagem criativa e tratada como fase agent-native: o Agente usa o prompt gerado, salva o PNG em `output/imagem_criativa_[cenario]_[timestamp].png` e finaliza o manifesto com `scripts/finalizar_imagem_criativa.py`.
+*   **Flow Trace UX:** Cada execução completa gera console em tempo real, `flow_trace_*.jsonl`, `flow_trace_*.json` e uma timeline HTML amigável para ensinar cada decisão, arquivo e artefato da skill.
 
 ---
 
@@ -163,7 +166,16 @@ Se você já tem o Agente configurado, basta um pedido simples e natural para ve
 
 > *"Barista, preciso de um café intenso para uma **War Room de incidente crítico** com 8 pessoas!"*
 
-*(O Agente entenderá automaticamente que deve escalar a receita para o grupo, aplicar os parâmetros de resiliência e, por padrão, exibirá o **Flow Tracer** passo a passo, gerando o infográfico visual no processo).*
+*(O Agente entenderá automaticamente que deve escalar a receita para o grupo, aplicar os parâmetros de resiliência e executar o runtime completo com **Flow Tracer**, PNG técnico, Markdown portátil, prompt criativo rastreável e manifesto de runtime).*
+
+Execução direta recomendada:
+
+```bash
+cd .agents/skills/receita-cafe
+python3 scripts/receita_completa.py --cenario incident --pessoas 8
+```
+
+Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) com os caminhos finais e os checks da Definition of Done, incluindo os caminhos de telemetria `flow_trace_*.jsonl`, `flow_trace_*.json` e `flow_trace_*.html`. Se `creative_image_required` for `true`, o wrapper retorna `status: "pending_multimodal"` e `completion_allowed: false`; o Agente deve gerar a imagem criativa, copiá-la para `suggested_creative_image_path` e finalizar o manifesto antes de considerar a entrega multimodal concluída.
 
 ---
 *Este projeto foi criado para inspirar. Se você achava que Agentes de IA eram apenas sobre texto, pegue uma xícara de café e explore o código. O futuro é modular.* 🚀☕

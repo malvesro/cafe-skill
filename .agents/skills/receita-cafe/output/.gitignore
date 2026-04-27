@@ -1,3 +1,4 @@
 # Ignora PNGs gerados automaticamente pela skill
 *.png
 !assets/**/*.png
+*.md

@@ -39,19 +39,78 @@ interface:
         description: >-
           Caminho absoluto para o PNG do infográfico gerado.
           Preencher quando o agente invocar o modo visual (--imagem).
+      markdown_path:
+        type: string
+        description: Caminho absoluto para o documento Markdown portatil gerado.
+      creative_prompt_path:
+        type: string
+        description: Caminho absoluto para o prompt criativo persistido como artefato rastreavel.
+      creative_image_path:
+        type: string
+        description: Caminho absoluto para a imagem criativa final, quando gerada por ferramenta nativa de imagem.
 ---
 
 # ☕ Advanced Brazilian Coffee Engine (v3.0)
 
 ## 🖼️ Output Visual (Infográfico)
 
-O agente **DEVE** gerar um infográfico PNG quando o usuário solicitar uma receita completa ou visualização do preparo. Invoque o engine visual com:
+O agente **DEVE** executar o runtime completo quando o usuário solicitar uma receita completa, sugestão de café para um cenário, reunião/time, ou visualização do preparo. Nesses casos, a skill não deve ser usada apenas como base conceitual de resposta: o agente deve invocar a CLI, capturar o Flow Tracer real e entregar os artefatos gerados.
+
+Preferencialmente, invoque o runtime canonico:
 
 ```bash
-python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --imagem --markdown
+python3 scripts/receita_completa.py --cenario <cenario> --pessoas <num>
 ```
 
-O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png` e o documento portátil em `output/receita_<cenario>_<timestamp>.md`.
+Se precisar chamar o motor base diretamente, invoque o engine visual com:
+
+```bash
+python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --flow --imagem --markdown
+```
+
+O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png`, o documento portátil em `output/receita_<cenario>_<timestamp>.md` e o prompt criativo em `output/prompt_criativo_<cenario>_<timestamp>.txt` quando o runtime canonico for usado.
+
+### 🛤️ Flow Trace Obrigatório
+Toda execução completa da skill **DEVE** emitir telemetria em tempo real e persistida:
+
+- Console em tempo real com `[FLOW]`.
+- `output/flow_trace_<cenario>_<timestamp>.jsonl` para eventos append-only.
+- `output/flow_trace_<cenario>_<timestamp>.json` para auditoria estruturada.
+- `output/flow_trace_<cenario>_<timestamp>.html` para visualização amigável.
+- Links para a telemetria no manifesto e no Markdown portátil.
+
+O nível de detalhe pode variar no futuro, mas a existência da telemetria não é opcional nesta skill.
+
+### 🎨 Creative Image Runtime
+A imagem criativa é uma fase **agent-native** posterior ao runtime determinístico. Quando o manifesto indicar `creative_image_required: true`, o agente **DEVE**:
+
+1. Ler o `creative_prompt_path`.
+2. Chamar a ferramenta nativa de geração de imagem com esse prompt.
+3. Copiar a imagem final para `output/imagem_criativa_<cenario>_<timestamp>.png`.
+4. Executar `scripts/finalizar_imagem_criativa.py --manifest <manifest_path> --creative-image-path <png>`.
+5. Responder somente depois que `creative_image_path` estiver preenchido no manifesto.
+
+Se o manifesto retornar `status: "pending_multimodal"` ou `completion_allowed: false`, o agente **NAO PODE** enviar resposta final ao usuário. Ele deve executar imediatamente `agent_next_action`, normalmente gerar a imagem criativa com a ferramenta nativa de imagem e rodar o finalizador.
+
+Se a ferramenta nativa de imagem não estiver disponível, o agente deve declarar a limitação explicitamente e manter o manifesto como multimodal pendente. Esse é o único caso em que uma resposta com pendência é aceitável.
+
+### ✅ Definition of Done do Runtime Completo
+Antes de responder como entrega concluída, o agente **DEVE** verificar:
+
+- A CLI da skill foi executada, não apenas consultada.
+- O Flow Tracer real apareceu na saída (`[FLOW]`).
+- O PNG técnico foi criado em `output/cafe_<cenario>_<timestamp>.png`.
+- O Markdown portátil foi criado em `output/receita_<cenario>_<timestamp>.md`.
+- O Markdown contém o infográfico embutido via `data:image/png;base64`.
+- O prompt da imagem criativa foi produzido e informado como artefato rastreável.
+- O Flow Trace JSONL foi criado.
+- O Flow Trace JSON foi criado.
+- O Flow Trace HTML foi criado.
+- O Markdown portátil contém links para a telemetria.
+- Se `creative_image_required` for `true`, `creative_image_path` deve apontar para um PNG existente.
+- `completion_allowed` deve estar `true` antes da resposta final.
+- Se a ferramenta nativa de imagem não estiver disponível, a limitação deve ser declarada explicitamente e o manifesto deve permanecer com `multimodal_status: "pending"`.
+- Os caminhos finais dos artefatos devem ser apresentados ao usuário.
 
 ### 📢 Diretrizes de Resposta do Agente
 Ao iniciar o atendimento, o Agente **deve**:
@@ -149,5 +208,3 @@ Protocolo:
   3. Despejos lentos até completar 500ml.
   4. Tempo esperado: 3min 45seg.
 ```
-
-
