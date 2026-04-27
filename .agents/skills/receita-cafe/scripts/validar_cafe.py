@@ -8,6 +8,7 @@ import argparse
 import json
 import subprocess
 import shutil
+import base64
 from datetime import datetime
 from output_paths import resolve_output_dir
 
@@ -87,17 +88,16 @@ OUTPUT_DIR = resolve_output_dir()
 HISTORY_FILE = os.path.join(OUTPUT_DIR, "history.json")
 
 def check_dependencies():
-    """Garante que as dependências necessárias (Pillow) estejam presentes."""
+    """Valida dependências necessárias (Pillow) sem auto-instalação em runtime."""
     try:
-        from PIL import Image
+        from PIL import Image  # noqa: F401
+        return True
     except ImportError:
-        print("🔧 Dependências faltando. Iniciando setup automático (Pillow)...")
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
-            print("✅ Setup concluído com sucesso!")
-        except Exception as e:
-            print(f"❌ Falha no setup automático: {e}")
-            print("Por favor, instale manualmente: pip install Pillow")
+        print("❌ Dependência ausente: Pillow (PIL).")
+        print("Instale previamente no ambiente, por exemplo:")
+        print("  - Ubuntu/Debian: sudo apt install python3-pil")
+        print("  - venv local: pip install Pillow")
+        return False
 
 def registrar_historico(params):
     """Persiste a extração no histórico em formato JSON."""
@@ -287,6 +287,7 @@ def main():
     parser.add_argument("--pessoas", type=int, default=1, help="Número de pessoas que serão servidas.")
     parser.add_argument("--dashboard", action="store_true", help="Gera o infográfico de Analytics (Barista Histórico).")
     parser.add_argument("--flow", action="store_true", default=True, help="Habilita o modo de rastreabilidade passo a passo (Padrão: Ativo).")
+    parser.add_argument("--artifacts-json", action="store_true", help="Emite JSON estruturado com artefatos ao final.")
     args = parser.parse_args()
 
     if args.flow:
@@ -378,7 +379,8 @@ def main():
     img_path = None
     if args.imagem:
         if args.flow: log_flow("Renderização Visual", "Invocando engine gráfica para gerar infográfico da receita.", ["infografico_engine.py", "assets/"])
-        check_dependencies()
+        if not check_dependencies():
+            raise SystemExit(2)
         try:
             engine_dir = os.path.join(os.path.dirname(__file__))
             sys.path.insert(0, engine_dir)
@@ -404,9 +406,6 @@ def main():
             log_flow("Storytelling Strategy", "Consolidando regras narrativas para geração do contexto visual.", [".agents/prompt_imagem_template.md"])
             log_flow("Empacotamento", "Gerando documento Markdown portátil com imagem embutida em Base64.", [OUTPUT_DIR])
         try:
-            import base64
-            from datetime import datetime
-            
             with open(img_path, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
             
@@ -453,6 +452,15 @@ Aqui estão os parâmetros técnicos calculados para garantir a máxima performa
             print(f"📄 Documento Markdown portátil gerado: {os.path.abspath(md_path)}")
         except Exception as e:
             print(f"⚠️  Erro ao gerar Markdown: {e}")
+
+    if args.artifacts_json:
+        print("\n[ARTIFACTS_JSON]")
+        print(json.dumps({
+            "technical_infographic_path": os.path.abspath(img_path) if img_path else None,
+            "portable_markdown_path": os.path.abspath(md_path) if 'md_path' in locals() and md_path else None,
+            "creative_prompt_text": prompt_criativo,
+            "params": params,
+        }, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()

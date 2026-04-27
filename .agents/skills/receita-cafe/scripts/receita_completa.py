@@ -21,6 +21,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 OUTPUT_DIR = resolve_output_dir()
 VALIDAR_CAFE = os.path.join(SCRIPT_DIR, "validar_cafe.py")
+FINALIZAR_IMAGEM = os.path.join(SCRIPT_DIR, "finalizar_imagem_criativa.py")
 
 
 def _build_command(args):
@@ -34,6 +35,7 @@ def _build_command(args):
         "--flow",
         "--imagem",
         "--markdown",
+        "--artifacts-json",
     ]
 
     if args.ml:
@@ -58,6 +60,22 @@ def _extract_path(stdout, label):
     if not match:
         return None
     return os.path.abspath(os.path.normpath(match.group(1).strip()))
+
+
+def _extract_artifacts_json(stdout):
+    marker = "[ARTIFACTS_JSON]"
+    if marker not in stdout:
+        return None
+    after_marker = stdout.split(marker, 1)[1].strip()
+    if not after_marker:
+        return None
+    first_line = after_marker.splitlines()[0].strip()
+    if not first_line:
+        return None
+    try:
+        return json.loads(first_line)
+    except Exception:
+        return None
 
 
 def _extract_creative_prompt(stdout):
@@ -139,6 +157,55 @@ def _validate_deterministic(stdout, png_path, markdown_path, prompt_path):
     return checks, missing
 
 
+def _validate_flow_trace_real(trace_events, trace_paths, creative_required, completion_allowed):
+    has_runtime_start = any(
+        e.get("phase") == "orchestration" and e.get("step_id") == "runtime_start"
+        for e in trace_events
+    )
+    has_command_built = any(
+        e.get("phase") == "orchestration" and e.get("step_id") == "command_built"
+        for e in trace_events
+    )
+    has_deterministic_runtime = any(e.get("phase") == "deterministic_runtime" for e in trace_events)
+    has_creative_finalized = any(
+        e.get("phase") == "creative_image_runtime" and e.get("step_id") == "creative_image_finalized"
+        for e in trace_events
+    )
+    has_trace_files = all(
+        os.path.exists(trace_paths.get(key, ""))
+        for key in ("flow_trace_jsonl_path", "flow_trace_json_path", "flow_trace_html_path")
+    )
+    creative_event_ok = True
+    if creative_required and completion_allowed:
+        creative_event_ok = has_creative_finalized
+
+    return (
+        has_runtime_start
+        and has_command_built
+        and has_deterministic_runtime
+        and has_trace_files
+        and creative_event_ok
+    )
+
+
+def _run_creative_finalizer(manifest_path, creative_image_path):
+    creative_image_path = os.path.abspath(creative_image_path)
+    cmd = [
+        sys.executable,
+        FINALIZAR_IMAGEM,
+        "--manifest",
+        manifest_path,
+        "--creative-image-path",
+        creative_image_path,
+    ]
+    result = subprocess.run(cmd, cwd=SKILL_DIR, text=True, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Falha ao finalizar imagem criativa.\n"
+            f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Executa a receita-cafe no modo completo.")
     parser.add_argument("--cenario", required=True)
@@ -155,8 +222,17 @@ def main():
         default=True,
         help="Marca a fase agent-native de imagem criativa como obrigatoria.",
     )
+    parser.add_argument(
+        "--creative-image-path",
+        help="PNG criativo já gerado para finalizar automaticamente o manifesto no mesmo run.",
+    )
     parser.add_argument("--manifest", action="store_true", help="Imprime manifesto JSON ao final.")
     args = parser.parse_args()
+    if not args.creative_image_required and os.environ.get("RECEITA_CAFE_DEV_MODE") != "1":
+        parser.error(
+            "--no-creative-image-required é permitido apenas em modo de desenvolvimento "
+            "(defina RECEITA_CAFE_DEV_MODE=1)."
+        )
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     trace_jsonl_path = os.path.abspath(os.path.join(OUTPUT_DIR, f"flow_trace_{args.cenario}_{run_id}.jsonl"))
@@ -191,9 +267,10 @@ def main():
     if result.stderr:
         print(result.stderr, file=sys.stderr, end="")
 
-    png_path = _extract_path(result.stdout, "Infográfico gerado")
-    markdown_path = _extract_path(result.stdout, "Documento Markdown portátil gerado")
-    creative_prompt = _extract_creative_prompt(result.stdout)
+    artifacts_json = _extract_artifacts_json(result.stdout) or {}
+    png_path = artifacts_json.get("technical_infographic_path") or _extract_path(result.stdout, "Infográfico gerado")
+    markdown_path = artifacts_json.get("portable_markdown_path") or _extract_path(result.stdout, "Documento Markdown portátil gerado")
+    creative_prompt = artifacts_json.get("creative_prompt_text") or _extract_creative_prompt(result.stdout)
     creative_prompt_path = _write_creative_prompt(args.cenario, creative_prompt, run_id)
     suggested_creative_image_path = os.path.abspath(
         os.path.join(OUTPUT_DIR, f"imagem_criativa_{args.cenario}_{run_id}.png")
@@ -243,6 +320,8 @@ def main():
         },
         "checks": checks,
         "missing": missing,
+        "flow_trace_real_validated": False,
+        "completion_block_reason": None,
     }
     append_jsonl(trace_jsonl_path, event(
         phase="creative_image_runtime",
@@ -279,14 +358,44 @@ def main():
     checks["flow_trace_jsonl_exists"] = os.path.exists(trace_paths["flow_trace_jsonl_path"])
     checks["flow_trace_json_exists"] = os.path.exists(trace_paths["flow_trace_json_path"])
     checks["flow_trace_html_exists"] = os.path.exists(trace_paths["flow_trace_html_path"])
+    checks["flow_trace_real"] = _validate_flow_trace_real(
+        trace_events=trace_events,
+        trace_paths=trace_paths,
+        creative_required=args.creative_image_required,
+        completion_allowed=manifest["completion_allowed"],
+    )
     checks["markdown_links_flow_trace"] = _append_markdown_telemetry(markdown_path, trace_paths)
+    if not checks["flow_trace_real"] and "flow_trace_real" not in missing:
+        missing.append("flow_trace_real")
+    manifest["missing"] = missing
+    manifest["flow_trace_real_validated"] = checks["flow_trace_real"]
+    if not manifest["completion_allowed"]:
+        if manifest["deterministic_status"] != "ok":
+            manifest["completion_block_reason"] = "deterministic_runtime_failed"
+        elif manifest["creative_image_required"]:
+            manifest["completion_block_reason"] = "creative_image_pending"
+        else:
+            manifest["completion_block_reason"] = "unknown_blocker"
     manifest["checks"] = checks
     _write_manifest(args.cenario, manifest, run_id)
+
+    if args.creative_image_required and args.creative_image_path and deterministic_ok:
+        _run_creative_finalizer(manifest_path, args.creative_image_path)
+        with open(manifest_path, "r", encoding="utf-8") as manifest_file:
+            manifest = json.load(manifest_file)
+        checks = manifest.get("checks", checks)
+        missing = manifest.get("missing", missing)
+        manifest["flow_trace_real_validated"] = checks.get("flow_trace_real", False)
+        if manifest.get("completion_allowed", False):
+            manifest["completion_block_reason"] = None
+        _write_manifest(args.cenario, manifest, run_id)
 
     print("\n[RUNTIME_MANIFEST]")
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
 
     if result.returncode != 0 or missing:
+        return 1
+    if args.creative_image_required and not manifest.get("completion_allowed", False):
         return 1
     return 0
 
