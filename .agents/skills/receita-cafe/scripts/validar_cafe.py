@@ -428,6 +428,3 @@ Aqui estão os parâmetros técnicos calculados para garantir a máxima performa
 
 if __name__ == "__main__":
     main()
-
-if __name__ == "__main__":
-    main()
