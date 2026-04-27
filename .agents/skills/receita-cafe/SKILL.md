@@ -112,6 +112,22 @@ Antes de responder como entrega concluída, o agente **DEVE** verificar:
 - Se a ferramenta nativa de imagem não estiver disponível, a limitação deve ser declarada explicitamente e o manifesto deve permanecer com `multimodal_status: "pending"`.
 - Os caminhos finais dos artefatos devem ser apresentados ao usuário.
 
+### 🧭 Runbook de Estados de Execução
+
+- `status: "ok"`: execução determinística + multimodal (quando obrigatório) concluídas.
+- `status: "pending_multimodal"`: parte determinística concluída; falta gerar/finalizar imagem criativa.
+- `status: "failed"`: falha na execução determinística ou validações obrigatórias.
+
+Campos de apoio para diagnóstico:
+
+- `flow_trace_real_validated`: confirma validação estruturada da telemetria (`jsonl/json/html` + eventos mínimos).
+- `completion_block_reason`: motivo explícito para bloqueio de conclusão (`deterministic_runtime_failed`, `creative_image_pending`, etc.).
+
+Regras de saída:
+
+- Se `completion_allowed=false`, a execução deve retornar erro para bloquear conclusão prematura.
+- Se `creative_image_required=true`, a resposta final ao usuário só é permitida após `creative_image_path` válido no manifesto.
+
 ### 📢 Diretrizes de Resposta do Agente
 Ao iniciar o atendimento, o Agente **deve**:
 1.  **Storytelling & Humor (Intro):** Antes de qualquer dado técnico, imagine e descreva a cena do usuário com um toque de humor "dev-friendly".
