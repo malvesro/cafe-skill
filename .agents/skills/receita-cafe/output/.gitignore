@@ -2,3 +2,8 @@
 *.png
 !assets/**/*.png
 *.md
+*.txt
+*.json
+*.jsonl
+*.html
+_writetest
