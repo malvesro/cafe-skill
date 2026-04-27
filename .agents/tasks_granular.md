@@ -48,3 +48,9 @@
 ### [x] T25: Dicionário Técnico para Humanos
 ### [x] T26: Destaque Educativo do Parâmetro Flow
 - **Status**: ✅ Concluído. Todos os parâmetros estão documentados e o Flow Tracer está estabelecido como o padrão educativo.
+
+## 🧭 Fase 12: Sincronia dos Diagramas com Runtime Atual
+### [x] T27: Atualizar diagrama de sequência (README.md) com branch `pending_multimodal` e finalização criativa
+### [x] T28: Atualizar fluxograma de decisão (README.md) com gate de conclusão e validação de trace real
+### [ ] T29: Atualizar diagrama de estados da skill (README da skill) com bypass dev e caminho `--creative-image-path`
+### [ ] T30: Verificação final de renderização Markdown/Mermaid (fences e sintaxe)

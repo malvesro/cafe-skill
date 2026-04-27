@@ -75,28 +75,16 @@ Para um desenvolvedor júnior, imagine isso como um **Microserviço de Dosagem**
 
 Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
-```text
-                               ESTADOS DA EXTRAÇÃO
-      ┌────────────────┐       ┌─────────────────┐       ┌───────────────────┐
-  ───▶│      IDLE      │───1──▶│   PREPARAÇÃO    │───2──▶│      BLOOMING     │
-      └────────────────┘       └─────────────────┘       └─────────┬─────────┘
-              ▲                                                    │
-              │                                          (Liberação de CO2 / 30s)
-      ┌───────┴────────┐                                           │
-      │   AJUSTE DE    │◀──────5───────[ FAIL ]──────────┐         ▼
-      │    MOAGEM      │                                 │   ┌───────────────┐
-      └────────────────┘                                 └───│      QA       │
-              ▲                                              │  (CHECKPOINT) │
-              │                                          ┌──▶└───────────────┘
-      ┌───────┴────────┐       ┌─────────────────┐       │         │
-      │    FINISHED    │◀──4───│    EXTRAÇÃO     │───3───┘      [ PASS ]
-      └────────────────┘       └─────────────────┘                 │
-                                                                   ▼
-                                                            ┌───────────────┐
-                                                            │ ✅ CAFÉ PRONTO │
-                                                            └───────────────┘
-
-  [1] Iniciar Skill  [2] Despejo (2x pó)  [3] Filtragem  [4] Parâmetros OK  [5] Tempo Errático
+```mermaid
+flowchart TD
+    IDLE[IDLE] -->|1 Iniciar Skill| PREP[PREPARACAO]
+    PREP -->|2 Despejo 2x po| BLOOM[BLOOMING]
+    BLOOM -->|3 Filtragem| EXT[EXTRACAO]
+    EXT --> QA[QA CHECKPOINT]
+    QA -->|PASS| READY[CAFE PRONTO]
+    READY --> FINISHED[FINISHED]
+    QA -->|FAIL 5 Tempo Erratico| GRIND[AJUSTE DE MOAGEM]
+    GRIND --> PREP
 ```
 
 > 🖼️ **Visual Check:** Se o seu visualizador suportar imagens locais, consulte o infográfico detalhado em: `./assets/flowchart.png`

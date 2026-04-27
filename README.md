@@ -17,7 +17,8 @@ sequenceDiagram
     participant A as Agente IA
     participant C as Contract (SKILL.md)
     participant S as Scripts (Python)
-    participant O as Outputs (PNG/MD)
+    participant O as Outputs (.ia/output)
+    participant F as Finalizer (finalizar_imagem_criativa.py)
 
     U->>A: Pedido (Ex: "Café para Deploy")
     A->>C: Consulta de Regras & Interface
@@ -26,9 +27,17 @@ sequenceDiagram
     Note over S: Flow Tracer Ativado
     S->>S: Cálculo de Scaling & Terroir
     S->>S: Geração de UI (infografico_engine.py)
-    S-->>O: Gravação de Ativos
-    S-->>A: Retorno Técnico + Logs de Fluxo + Manifesto
-    A->>U: Resposta Final (Storytelling + Receita + Imagem)
+    S-->>O: Grava PNG/MD/Prompt/Flow Trace + Manifesto
+    S-->>A: Retorna [RUNTIME_MANIFEST]
+    alt status = pending_multimodal
+        A->>A: Gera imagem criativa (tool nativa)
+        A->>F: --manifest + --creative-image-path
+        F-->>O: Atualiza manifesto + trace (creative_image_finalized)
+        F-->>A: completion_allowed = true
+    else status = ok
+        A->>A: Entrega permitida imediatamente
+    end
+    A->>U: Resposta Final (somente com completion_allowed=true)
 ```
 
 ### 2. Lógica de Decisão e Auto-Scaling
@@ -37,7 +46,7 @@ O motor técnico (`validar_cafe.py`) opera como uma máquina de estados que vali
 ```mermaid
 graph TD
     A[Início: Comando CLI] --> B{Possui Contexto?}
-    B -- Não --> C[Inidica Erro / Fallback]
+    B -- Não --> C[Indica Erro / Fallback]
     B -- Sim --> D[Mapear Terroir & Ratio]
     D --> E{Pessoas Definidas?}
     E -- Não --> F[Assumir 1 Pessoa]
@@ -46,10 +55,23 @@ graph TD
     H --> I[Gerar Infográfico PNG]
     I --> J[Persistir Histórico JSON]
     J --> K[Gerar Markdown Portátil]
-    K --> L[Fim: Entrega de Ativos]
+    K --> T[Validar Flow Trace Real]
+    T --> U{flow_trace_real = true?}
+    U -- Não --> V[Marcar failed + bloquear conclusão]
+    U -- Sim --> M{Imagem criativa obrigatória?}
+    M -- Não --> N[status ok + completion_allowed true]
+    M -- Sim --> O[status pending_multimodal]
+    O --> P{creative_image_path válido?}
+    P -- Não --> Q[completion_allowed false + aguardar finalização]
+    P -- Sim --> R[Finalizar manifesto multimodal]
+    R --> N
+    N --> L[Fim: Entrega permitida]
 
     style H fill:#f9f,stroke:#333,stroke-width:2px
     style I fill:#bbf,stroke:#333,stroke-width:2px
+    style T fill:#ffd9b3,stroke:#333,stroke-width:2px
+    style O fill:#ffe4e1,stroke:#333,stroke-width:2px
+    style Q fill:#ffe4e1,stroke:#333,stroke-width:2px
 ```
 
 ### 🎓 Guia de Leitura Arquitetural (Para Desenvolvedores)
