@@ -68,15 +68,15 @@ Se precisar chamar o motor base diretamente, invoque o engine visual com:
 python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --flow --imagem --markdown
 ```
 
-O arquivo PNG é salvo em `output/cafe_<cenario>_<timestamp>.png`, o documento portátil em `output/receita_<cenario>_<timestamp>.md` e o prompt criativo em `output/prompt_criativo_<cenario>_<timestamp>.txt` quando o runtime canonico for usado.
+O arquivo PNG é salvo em `.ia/output/cafe_<cenario>_<timestamp>.png`, o documento portátil em `.ia/output/receita_<cenario>_<timestamp>.md` e o prompt criativo em `.ia/output/prompt_criativo_<cenario>_<timestamp>.txt` quando o runtime canonico for usado.
 
 ### 🛤️ Flow Trace Obrigatório
 Toda execução completa da skill **DEVE** emitir telemetria em tempo real e persistida:
 
 - Console em tempo real com `[FLOW]`.
-- `output/flow_trace_<cenario>_<timestamp>.jsonl` para eventos append-only.
-- `output/flow_trace_<cenario>_<timestamp>.json` para auditoria estruturada.
-- `output/flow_trace_<cenario>_<timestamp>.html` para visualização amigável.
+- `.ia/output/flow_trace_<cenario>_<timestamp>.jsonl` para eventos append-only.
+- `.ia/output/flow_trace_<cenario>_<timestamp>.json` para auditoria estruturada.
+- `.ia/output/flow_trace_<cenario>_<timestamp>.html` para visualização amigável.
 - Links para a telemetria no manifesto e no Markdown portátil.
 
 O nível de detalhe pode variar no futuro, mas a existência da telemetria não é opcional nesta skill.
@@ -86,7 +86,7 @@ A imagem criativa é uma fase **agent-native** posterior ao runtime determiníst
 
 1. Ler o `creative_prompt_path`.
 2. Chamar a ferramenta nativa de geração de imagem com esse prompt.
-3. Copiar a imagem final para `output/imagem_criativa_<cenario>_<timestamp>.png`.
+3. Copiar a imagem final para `.ia/output/imagem_criativa_<cenario>_<timestamp>.png`.
 4. Executar `scripts/finalizar_imagem_criativa.py --manifest <manifest_path> --creative-image-path <png>`.
 5. Responder somente depois que `creative_image_path` estiver preenchido no manifesto.
 
@@ -99,8 +99,8 @@ Antes de responder como entrega concluída, o agente **DEVE** verificar:
 
 - A CLI da skill foi executada, não apenas consultada.
 - O Flow Tracer real apareceu na saída (`[FLOW]`).
-- O PNG técnico foi criado em `output/cafe_<cenario>_<timestamp>.png`.
-- O Markdown portátil foi criado em `output/receita_<cenario>_<timestamp>.md`.
+- O PNG técnico foi criado em `.ia/output/cafe_<cenario>_<timestamp>.png`.
+- O Markdown portátil foi criado em `.ia/output/receita_<cenario>_<timestamp>.md`.
 - O Markdown contém o infográfico embutido via `data:image/png;base64`.
 - O prompt da imagem criativa foi produzido e informado como artefato rastreável.
 - O Flow Trace JSONL foi criado.
@@ -115,12 +115,12 @@ Antes de responder como entrega concluída, o agente **DEVE** verificar:
 ### 📢 Diretrizes de Resposta do Agente
 Ao iniciar o atendimento, o Agente **deve**:
 1.  **Storytelling & Humor (Intro):** Antes de qualquer dado técnico, imagine e descreva a cena do usuário com um toque de humor "dev-friendly".
-2.  **Oferecer Opções de Formato:** Perguntar (ou seguir se já solicitado) se o usuário deseja o resultado no **Chat**, como um **Documento Markdown (.md)** estruturado na pasta `output/`, ou **Ambos**.
+2.  **Oferecer Opções de Formato:** Perguntar (ou seguir se já solicitado) se o usuário deseja o resultado no **Chat**, como um **Documento Markdown (.md)** estruturado na pasta `.ia/output/`, ou **Ambos**.
 
 Ao finalizar o atendimento, o Agente **deve**:
 1.  **Consolidar Entrega:**
     *   **Se Chat:** Exibir o resumo técnico, link absoluto da imagem e renderizar o infográfico (`![Infográfico](caminho)`).
-    *   **Se Documento:** Criar um arquivo `output/receita_[cenario]_[timestamp].md` **PORTÁTIL**. Para garantir a renderização, a imagem deve ser incorporada diretamente no Markdown via **Base64 Data URI** (`![Infográfico](data:image/png;base64,...)`).
+    *   **Se Documento:** Criar um arquivo `.ia/output/receita_[cenario]_[timestamp].md` **PORTÁTIL**. Para garantir a renderização, a imagem deve ser incorporada diretamente no Markdown via **Base64 Data URI** (`![Infográfico](data:image/png;base64,...)`).
     *   **Se Ambos:** Realizar as duas ações acima.
 2.  **Lógica de Volume & Pessoas (Inferência):**
     *   **Pedido Singular:** Se o usuário disser "Quero um café" ou "Faz um café", assumir `num_pessoas: 1`.
