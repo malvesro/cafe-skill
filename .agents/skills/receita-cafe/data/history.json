@@ -222,5 +222,37 @@
     "volume_ml": 2250,
     "cafe_g": 187.5,
     "pessoas": 15
+  },
+  {
+    "timestamp": "2026-04-26 22:34:40",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 150,
+    "cafe_g": 10.0,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-26 22:34:40",
+    "cenario": "debugging",
+    "regiao": "cerrado",
+    "volume_ml": 150,
+    "cafe_g": 10.0,
+    "pessoas": 1
+  },
+  {
+    "timestamp": "2026-04-27 00:13:50",
+    "cenario": "architecture",
+    "regiao": "matas_de_minas",
+    "volume_ml": 300,
+    "cafe_g": 23.1,
+    "pessoas": 2
+  },
+  {
+    "timestamp": "2026-04-27 00:13:50",
+    "cenario": "architecture",
+    "regiao": "matas_de_minas",
+    "volume_ml": 300,
+    "cafe_g": 23.1,
+    "pessoas": 2
   }
 ]
