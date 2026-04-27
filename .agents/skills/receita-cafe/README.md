@@ -9,13 +9,13 @@ Para que o motor visual e os cálculos técnicos funcionem corretamente, sua est
 1.  **Python 3.8+** instalado.
 2.  **Biblioteca Pillow:** Responsável pela geração dos infográficos.
 
-### ⚡ Auto-Setup (Self-Healing)
-A partir da versão 3.1.0, a skill conta com inteligência de auto-inicialização. Na primeira vez que você solicitar um infográfico, o motor técnico:
-1.  Verifica se o **Pillow** está presente.
-2.  Caso não esteja, realiza a **instalação automática** via `pip`.
-3.  Notifica você no terminal sobre o progresso.
+### ✅ Validação de Dependências (Fail Fast)
+O runtime valida se o **Pillow** está disponível antes da renderização visual.  
+Se estiver ausente, a execução falha com instruções explícitas de instalação.
 
-Isso garante uma experiência **Zero Friction** e **Plug-and-Play**, ideal para ambientes de agentes autônomos e containers limpos.
+Exemplos de instalação:
+1.  Ubuntu/Debian: `sudo apt install python3-pil`
+2.  Ambiente virtual: `pip install Pillow`
 
 ---
 
@@ -114,14 +114,14 @@ A skill agora conta com um **motor de infográficos criativos** (v3.1). Cada cen
 
 | Cenário | Preview Visual | Mood / Aplicação |
 | :--- | :--- | :--- |
-| **Debugging** | `output/cafe_debugging_*.png` | War Room, Tensão, Resiliência. |
-| **Deploy** | `output/cafe_deploy_*.png` | Celebração, Vitória, Pipeline Verde. |
-| **Team Topologies** | `output/cafe_team_topologies_*.png` | Alinhamento, Fluxos, Estrutura. |
-| **Planning** | `output/cafe_planning_*.png` | Foco, Estratégia, Equilíbrio. |
-| **Code Review** | `output/cafe_code_review_*.png` | Precisão, Limpeza, Análise Técnica. |
-| **Doc Mode** | `output/cafe_documentation_*.png` | Conforto, Contemplação, Foco. |
+| **Debugging** | `.ia/output/cafe_debugging_*.png` | War Room, Tensão, Resiliência. |
+| **Deploy** | `.ia/output/cafe_deploy_*.png` | Celebração, Vitória, Pipeline Verde. |
+| **Team Topologies** | `.ia/output/cafe_team_topologies_*.png` | Alinhamento, Fluxos, Estrutura. |
+| **Planning** | `.ia/output/cafe_planning_*.png` | Foco, Estratégia, Equilíbrio. |
+| **Code Review** | `.ia/output/cafe_code_review_*.png` | Precisão, Limpeza, Análise Técnica. |
+| **Doc Mode** | `.ia/output/cafe_documentation_*.png` | Conforto, Contemplação, Foco. |
 
-*Os arquivos são gerados no diretório `/output/` e seguem o padrão de nomenclatura `cafe_[cenario]_[timestamp].png`.*
+*Os arquivos são gerados no diretório `.ia/output/` e seguem o padrão de nomenclatura `cafe_[cenario]_[timestamp].png`.*
 
 ---
 
@@ -166,12 +166,12 @@ python3 scripts/receita_completa.py --cenario team_topologies --pessoas 8
 
 O wrapper falha a execução se algum item essencial não for encontrado:
 *   Flow Tracer real (`[FLOW]`).
-*   Infografico tecnico em `output/cafe_[cenario]_[timestamp].png`.
-*   Markdown portatil em `output/receita_[cenario]_[timestamp].md`.
+*   Infografico tecnico em `.ia/output/cafe_[cenario]_[timestamp].png`.
+*   Markdown portatil em `.ia/output/receita_[cenario]_[timestamp].md`.
 *   Imagem embutida no Markdown via `data:image/png;base64`.
-*   Prompt criativo persistido em `output/prompt_criativo_[cenario]_[timestamp].txt`.
-*   Manifesto persistido em `output/runtime_manifest_[cenario]_[timestamp].json`.
-*   Flow Trace JSONL, JSON e HTML persistidos em `output/flow_trace_[cenario]_[timestamp].*`.
+*   Prompt criativo persistido em `.ia/output/prompt_criativo_[cenario]_[timestamp].txt`.
+*   Manifesto persistido em `.ia/output/runtime_manifest_[cenario]_[timestamp].json`.
+*   Flow Trace JSONL, JSON e HTML persistidos em `.ia/output/flow_trace_[cenario]_[timestamp].*`.
 *   Links de telemetria inseridos no Markdown portatil.
 
 ### Telemetria Didatica Obrigatoria
@@ -194,13 +194,22 @@ Fluxo esperado:
 5. Finalize o manifesto:
    ```bash
    python3 scripts/finalizar_imagem_criativa.py \
-     --manifest output/runtime_manifest_<cenario>_<timestamp>.json \
-     --creative-image-path output/imagem_criativa_<cenario>_<timestamp>.png
+     --manifest .ia/output/runtime_manifest_<cenario>_<timestamp>.json \
+     --creative-image-path .ia/output/imagem_criativa_<cenario>_<timestamp>.png
    ```
 
 Uma entrega multimodal so esta completa quando o manifesto retornar `status: "ok"`, `completion_allowed: true`, `multimodal_status: "ok"` e `creative_image_path` apontar para um PNG existente.
 
 Se `scripts/receita_completa.py` retornar `status: "pending_multimodal"`, o Agente nao deve responder ainda. Ele deve seguir `agent_next_action`, gerar a imagem criativa com a ferramenta nativa de imagem, salvar no `suggested_creative_image_path` e executar `scripts/finalizar_imagem_criativa.py`.
+
+### Controle do Bypass Criativo (Modo Dev)
+O bypass `--no-creative-image-required` e aceito apenas em desenvolvimento com:
+
+```bash
+RECEITA_CAFE_DEV_MODE=1 python3 scripts/receita_completa.py --cenario debugging --pessoas 2 --no-creative-image-required
+```
+
+Sem `RECEITA_CAFE_DEV_MODE=1`, o wrapper rejeita o bypass.
 
 ### 2. Pedido Baseado em Cenário (Consultoria)
 **Prompt:** *"Estou em uma sessão crítica de deploy e preciso de café para 2 pessoas. O que você sugere?"*

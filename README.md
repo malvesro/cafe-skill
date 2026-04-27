@@ -95,12 +95,12 @@ Nossa flagship skill, a `receita-cafe`, é o exemplo perfeito de como uma "Skill
 
 ### ✨ Superpoderes da Skill:
 *   **Auto-Scaling de Dose:** Precisa de café para uma pessoa ou para uma reunião de 15 líderes? A IA infere o volume e aplica o *Ratio* técnico correto.
-*   **Self-Healing (Auto-Setup):** A skill detecta se o ambiente tem as dependências (Pillow) e se auto-configura na primeira execução. É o fim do *"na minha máquina não funciona"*.
+*   **Runtime Previsível:** A skill valida dependências antes da renderização visual e falha rápido com instruções claras de instalação (sem auto-instalação em runtime).
 *   **Observabilidade (Barista Analytics):** Um sistema de telemetria que rastreia o consumo por cenário e gera dashboards de estresse do time.
 *   **Rastreabilidade Didática (Flow Tracer):** O fim da "caixa-preta". A skill detalha cada decisão técnica em tempo real, do contrato ao PNG.
 *   **Output Multimodal:** Gera documentos Markdown portáteis e infográficos visuais de alto impacto prontos para apresentação.
-*   **Runtime Canônico:** O wrapper `scripts/receita_completa.py` impede a execução apenas conceitual da skill, valida PNG, Markdown, Base64 embutido, Flow Tracer, prompt criativo rastreável e manifesto persistido.
-*   **Creative Image Runtime:** A imagem criativa e tratada como fase agent-native: o Agente usa o prompt gerado, salva o PNG em `output/imagem_criativa_[cenario]_[timestamp].png` e finaliza o manifesto com `scripts/finalizar_imagem_criativa.py`.
+*   **Runtime Canônico:** O wrapper `scripts/receita_completa.py` impede execução apenas conceitual, valida PNG/Markdown/telemetria e bloqueia conclusão prematura quando a fase criativa estiver pendente.
+*   **Creative Image Runtime:** A imagem criativa é tratada como fase agent-native: o Agente usa o prompt gerado, salva o PNG em `.ia/output/imagem_criativa_[cenario]_[timestamp].png` e finaliza o manifesto com `scripts/finalizar_imagem_criativa.py`.
 *   **Flow Trace UX:** Cada execução completa gera console em tempo real, `flow_trace_*.jsonl`, `flow_trace_*.json` e uma timeline HTML amigável para ensinar cada decisão, arquivo e artefato da skill.
 
 ---
@@ -127,7 +127,7 @@ Para que o Agente opere com precisão cirúrgica, ele utiliza a interface defini
 O sistema não entrega apenas texto, ele entrega um **Objeto de Conhecimento**:
 *   **`parametros_finais`**: O JSON calculado com as gramas exatas de café e temperatura.
 *   **`alerta_qa`**: Um array de strings com avisos técnicos (ex: dependência de água mineral, alerta térmico).
-*   **`image_path`**: O caminho absoluto para o arquivo PNG do infográfico gerado na pasta `/output`.
+*   **`image_path`**: O caminho absoluto para o arquivo PNG do infográfico gerado na pasta `.ia/output`.
 
 ---
 
@@ -175,7 +175,7 @@ cd .agents/skills/receita-cafe
 python3 scripts/receita_completa.py --cenario incident --pessoas 8
 ```
 
-Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) com os caminhos finais e os checks da Definition of Done, incluindo os caminhos de telemetria `flow_trace_*.jsonl`, `flow_trace_*.json` e `flow_trace_*.html`. Se `creative_image_required` for `true`, o wrapper retorna `status: "pending_multimodal"` e `completion_allowed: false`; o Agente deve gerar a imagem criativa, copiá-la para `suggested_creative_image_path` e finalizar o manifesto antes de considerar a entrega multimodal concluída.
+Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) com os caminhos finais e os checks da Definition of Done, incluindo os caminhos de telemetria `flow_trace_*.jsonl`, `flow_trace_*.json` e `flow_trace_*.html` em `.ia/output`. Se `creative_image_required` for `true`, o wrapper retorna `status: "pending_multimodal"` e `completion_allowed: false` (com exit code diferente de zero); o Agente deve gerar a imagem criativa, copiá-la para `suggested_creative_image_path` e finalizar o manifesto antes de considerar a entrega multimodal concluída.
 
 ---
 *Este projeto foi criado para inspirar. Se você achava que Agentes de IA eram apenas sobre texto, pegue uma xícara de café e explore o código. O futuro é modular.* 🚀☕
