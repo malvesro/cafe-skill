@@ -96,6 +96,25 @@ PY
 
 echo "[SMOKE][OK] A"
 
+echo "[SMOKE] A2: saída deve informar artefatos principais ao usuário"
+if ! rg -q '\[RESUMO_ENTREGA\]' "$OUT_A"; then
+  echo "[SMOKE][FAIL] A2: bloco [RESUMO_ENTREGA] ausente"
+  exit 1
+fi
+if ! rg -q 'Markdown portátil:' "$OUT_A"; then
+  echo "[SMOKE][FAIL] A2: caminho de Markdown não informado"
+  exit 1
+fi
+if ! rg -q 'Infográfico técnico:' "$OUT_A"; then
+  echo "[SMOKE][FAIL] A2: caminho do infográfico não informado"
+  exit 1
+fi
+if ! rg -q 'Imagem criativa:' "$OUT_A"; then
+  echo "[SMOKE][FAIL] A2: status/caminho da imagem criativa não informado"
+  exit 1
+fi
+echo "[SMOKE][OK] A2"
+
 echo "[SMOKE] B: bloqueio multimodal deve expor motivo no chat"
 set +e
 python3 "$SCRIPT" --cenario debugging --pessoas 2 --manifest --chat-telemetry-style technical --creative-image-path "$OUT_DIR/_arquivo_inexistente_${RUN_ID}.png" >"$OUT_B" 2>&1

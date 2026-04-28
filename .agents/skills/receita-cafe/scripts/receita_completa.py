@@ -204,6 +204,24 @@ def _artifact_descriptors(paths):
     return descriptors
 
 
+def _print_delivery_summary(manifest):
+    artifacts = manifest.get("artifacts", {})
+    technical_png = artifacts.get("technical_infographic_path")
+    markdown_path = artifacts.get("portable_markdown_path")
+    creative_image = artifacts.get("creative_image_path")
+    suggested_creative = artifacts.get("suggested_creative_image_path")
+
+    print("\n[RESUMO_ENTREGA]")
+    if markdown_path:
+        print(f"- Markdown portátil: {markdown_path}")
+    if technical_png:
+        print(f"- Infográfico técnico: {technical_png}")
+    if creative_image:
+        print(f"- Imagem criativa: {creative_image}")
+    elif suggested_creative:
+        print(f"- Imagem criativa: pendente (destino sugerido: {suggested_creative})")
+
+
 def _chat_coverage_complete(manifest):
     stages = {e.get("etapa") for e in manifest.get("chat_timeline", [])}
     return CANONICAL_CHAT_STAGES.issubset(stages)
@@ -945,6 +963,7 @@ def main():
     manifest["missing"] = missing
     _write_manifest(args.cenario, manifest, run_id)
 
+    _print_delivery_summary(manifest)
     print("\n[RUNTIME_MANIFEST]")
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
 
