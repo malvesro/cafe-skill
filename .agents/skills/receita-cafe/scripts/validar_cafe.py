@@ -129,13 +129,22 @@ def registrar_historico(params):
         json.dump(history, f, indent=2)
 
 def gerar_dashboard(flow=False):
-    """Aciona o motor de analytics para gerar o infográfico de histórico."""
+    """Aciona o motor de analytics para gerar o infográfico de histórico e narrativa."""
     try:
         engine_dir = os.path.dirname(__file__)
         sys.path.insert(0, engine_dir)
         from analytics_engine import processar_dashboard
-        img_path = processar_dashboard(flow=flow)
-        print(f"\n📊 Barista Analytics: {img_path}")
+        res = processar_dashboard(flow=flow)
+        if "|" in res:
+            img_path, md_path, status_humor, narrativa = res.split("|")
+            print(f"\n📊 Barista Analytics: {img_path}")
+            print(f"📄 Relatório Portátil: {md_path}")
+            print(f"\n--- 🎭 INTERPRETAÇÃO DO BARISTA ---")
+            print(f"ESTADO: {status_humor}")
+            print(f"INSIGHT: {narrativa}")
+            print(f"-----------------------------------\n")
+        else:
+            print(f"\n📊 Barista Analytics: {res}")
     except Exception as e:
         print(f"❌ Erro ao gerar dashboard: {e}")
 

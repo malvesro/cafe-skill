@@ -303,10 +303,8 @@ def _append_markdown_telemetry(markdown_path, trace_paths):
 
 ---
 
-## Telemetria da Execução
-- **Flow Trace JSONL:** {trace_paths['flow_trace_jsonl_path']}
-- **Flow Trace JSON:** {trace_paths['flow_trace_json_path']}
-- **Flow Trace HTML:** {trace_paths['flow_trace_html_path']}
+🔬 **Auditoria Técnica**
+- **Flow Trace JSON:** [{os.path.basename(trace_paths['flow_trace_json_path'])}]({os.path.basename(trace_paths['flow_trace_json_path'])})
 """
     with open(markdown_path, "a", encoding="utf-8") as md_file:
         md_file.write(section)
@@ -344,10 +342,7 @@ def _validate_flow_trace_real(trace_events, trace_paths, creative_required, comp
         e.get("phase") == "creative_image_runtime" and e.get("step_id") == "creative_image_finalized"
         for e in trace_events
     )
-    has_trace_files = all(
-        os.path.exists(trace_paths.get(key, ""))
-        for key in ("flow_trace_jsonl_path", "flow_trace_json_path", "flow_trace_html_path")
-    )
+    has_trace_files = os.path.exists(trace_paths.get("flow_trace_json_path", ""))
     creative_event_ok = True
     if creative_required and completion_allowed:
         creative_event_ok = has_creative_finalized
@@ -488,8 +483,8 @@ def _resolve_creative_image_path_for_closure(args, png_path, suggested_path, cre
 
 def main():
     parser = argparse.ArgumentParser(description="Executa a receita-cafe no modo completo.")
-    parser.add_argument("--cenario", required=True)
-    parser.add_argument("--pessoas", type=int, required=True)
+    parser.add_argument("--cenario")
+    parser.add_argument("--pessoas", type=int)
     parser.add_argument("--ml", type=int)
     parser.add_argument("--regiao")
     parser.add_argument("--story")
@@ -529,7 +524,20 @@ def main():
         ),
     )
     parser.add_argument("--manifest", action="store_true", help="Imprime manifesto JSON ao final.")
+    parser.add_argument("--dashboard", action="store_true", help="Gera dashboard de analytics.")
     args = parser.parse_args()
+    
+    if args.dashboard:
+        _emit_chat_telemetry("DASHBOARD", "EXECUCAO_DETERMINISTICA", "SCRIPT", "EXECUTAR", "INFO", "Invocando Módulo de Analytics de Alto Impacto.")
+        cmd_dash = [sys.executable, VALIDAR_CAFE, "--dashboard", "--flow"]
+        result_dash = subprocess.run(cmd_dash, cwd=SKILL_DIR, text=True, capture_output=True)
+        if result_dash.stdout:
+            print(result_dash.stdout)
+        sys.exit(result_dash.returncode)
+
+    if not args.cenario or not args.pessoas:
+        parser.error("Os argumentos --cenario e --pessoas são obrigatórios a menos que --dashboard seja usado.")
+
     global CHAT_TELEMETRY_ENABLED, CHAT_TELEMETRY_STYLE
     CHAT_TELEMETRY_ENABLED = args.chat_telemetry
     CHAT_TELEMETRY_STYLE = args.chat_telemetry_style
@@ -681,9 +689,7 @@ def main():
             "creative_prompt_path": creative_prompt_path,
             "creative_image_path": None,
             "suggested_creative_image_path": suggested_creative_image_path,
-            "flow_trace_jsonl_path": trace_jsonl_path,
             "flow_trace_json_path": None,
-            "flow_trace_html_path": None,
         },
         "checks": checks,
         "missing": missing,
@@ -725,9 +731,7 @@ def main():
     trace_events = load_jsonl(trace_jsonl_path)
     trace_paths = write_artifacts(OUTPUT_DIR, args.cenario, run_id, trace_events, metadata)
     manifest["artifacts"].update(trace_paths)
-    checks["flow_trace_jsonl_exists"] = os.path.exists(trace_paths["flow_trace_jsonl_path"])
     checks["flow_trace_json_exists"] = os.path.exists(trace_paths["flow_trace_json_path"])
-    checks["flow_trace_html_exists"] = os.path.exists(trace_paths["flow_trace_html_path"])
     checks["flow_trace_real"] = _validate_flow_trace_real(
         trace_events=trace_events,
         trace_paths=trace_paths,
