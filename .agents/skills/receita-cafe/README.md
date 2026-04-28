@@ -7,13 +7,13 @@ Esta skill orquestra o preparo de cafés especiais brasileiros, unindo a ciênci
 O diagrama abaixo ilustra o ciclo de vida de uma extração, desde o pedido inicial até a entrega de alto impacto.
 
 ```mermaid
-graph LR
-    A[Pedido Inicial] --> B{Validação Terroir}
-    B -- Mogiana/Cerrado --> C[Sugestão de Setup]
-    C -- Ratio/Moagem/Água --> D[Execução Blooming]
-    D --> E[Extração em Pulsos]
-    E --> F[✅ Café Final]
-    F --> G[Feedback & Ajuste]
+flowchart LR
+    A["Pedido Inicial"] --> B{"Validação Terroir"}
+    B -- "Mogiana/Cerrado" --> C["Sugestão de Setup"]
+    C -- "Ratio/Moagem/Água" --> D["Execução Blooming"]
+    D --> E["Extração em Pulsos"]
+    E --> F["✅ Café Final"]
+    F --> G["Feedback & Ajuste"]
     
     style F fill:#bbf,stroke:#333,stroke-width:2px
 ```
@@ -28,17 +28,17 @@ A v5.0 utiliza uma arquitetura de injeção sequencial para garantir a portabili
 
 ```mermaid
 flowchart TD
-    START[Início: receita_completa.py] --> DET[Cálculo Determinístico]
-    DET --> INF[Gerar Infográfico Técnico]
-    INF --> MD[Criar Base Markdown]
-    MD --> PEND{Multimodal?}
+    START["Início: receita_completa.py"] --> DET["Cálculo Determinístico"]
+    DET --> INF["Gerar Infográfico Técnico"]
+    INF --> MD["Criar Base Markdown"]
+    MD --> PEND{"Multimodal?"}
     
-    PEND -- Sim --> GEN[Agente: Geração Imagem IA]
-    GEN --> SAVE[Agente: Persistência Local PNG]
-    SAVE --> B64[Agente: Conversão Base64]
-    B64 --> INJ_C[Agente: Injetar Imagem Criativa]
-    INJ_C --> INJ_D[Agente: Injetar Dashboard Analytics]
-    INJ_D --> FINAL[✅ Relatório Portátil Sênior]
+    PEND -- "Sim" --> GEN["Agente: Geração Imagem IA"]
+    GEN --> SAVE["Agente: Persistência Local PNG"]
+    SAVE --> B64["Agente: Conversão Base64"]
+    B64 --> INJ_C["Agente: Injetar Imagem Criativa"]
+    INJ_C --> INJ_D["Agente: Injetar Dashboard Analytics"]
+    INJ_D --> FINAL["✅ Relatório Portátil Sênior"]
     
     style FINAL fill:#f9f,stroke:#333,stroke-width:4px
 ```
@@ -50,7 +50,7 @@ flowchart TD
 A v5.0 introduz o **Padrão Sênior de Portabilidade**, garantindo que cada extração resulte em um artefato autossuficiente e offline-ready.
 
 ### 🌟 O "Super Markdown" (.md)
-O documento gerado em `.ia/output/receita_*.md` é o rastro definitivo da experiência, unificando:
+O documento gerado em `.ia/output/receita_*.md` é o rastro definitivo da experiênca, unificando:
 1.  **Storytelling & Humor:** No topo, contextualizando a extração ao cenário de dev.
 2.  **Infográfico Técnico:** Codificado em **Base64** (sem dependência de arquivo local).
 3.  **Imagem Criativa IA:** Gerada nativamente e embutida em **Base64**.
