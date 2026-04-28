@@ -40,6 +40,19 @@ def processar_dashboard(flow: bool = False):
         return "Histórico vazio."
 
     _log_internal("Analyze", f"Processando {len(history)} registros para cálculo de KPIs.")
+    
+    # 2. Agregação de Dados
+    total_ml = sum(e.get("volume_ml", 0) for e in history)
+    total_g = sum(e.get("cafe_g", 0) for e in history)
+    total_p = sum(e.get("pessoas", 0) for e in history)
+    
+    scenarios = {}
+    for e in history:
+        sc = e.get("cenario", "unknown")
+        scenarios[sc] = scenarios.get(sc, 0) + 1
+    
+    fav_cenario = max(scenarios, key=scenarios.get) if scenarios else "N/A"
+
     # 3. Criar Imagem (Dashboard)
     bg_color = _hex("#0A0A12")
     accent = _hex("#F1C40F") # Gold
