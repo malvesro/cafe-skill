@@ -1,0 +1,6 @@
+Estamos em um deploy de sexta-feira às 18h sem rollback possível. A equipe está dividida entre cautela e pressão do negócio. Que café você sugere — e por quê isso ajuda na tomada de decisão sob incerteza?
+
+
+Estou sozinho debugando um problema intermitente que só acontece em produção. Não sei se é memória, rede ou concorrência. Que extração acompanha esse tipo de incerteza?
+
+
