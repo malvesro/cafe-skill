@@ -35,6 +35,7 @@ TELEMETRY_MODE_EVENTS = {
     },
 }
 CHAT_TELEMETRY_ENABLED = True
+CHAT_TELEMETRY_STYLE = "friendly"
 TELEMETRY_SEQ = 0
 CANONICAL_CHAT_STAGES = {"PRE-FLIGHT", "DETERMINISTIC", "ARTIFACT_PACKAGING", "MULTIMODAL_CLOSURE", "FINAL_RESPONSE"}
 CHAT_STAGE_PTBR = {
@@ -119,7 +120,22 @@ def _emit_chat_telemetry(run_id, etapa, componente, acao, nivel, mensagem):
     etapa_chat = CHAT_STAGE_PTBR.get(etapa, etapa)
     componente_chat = CHAT_COMPONENT_PTBR.get(componente, componente)
     acao_chat = CHAT_ACTION_PTBR.get(acao, acao)
-    print(f"[{etapa_chat}][{componente_chat}][{acao_chat}][{nivel}][{ts}][{run_id}][seq:{TELEMETRY_SEQ}] {mensagem}")
+    if CHAT_TELEMETRY_STYLE == "technical":
+        print(f"[{etapa_chat}][{componente_chat}][{acao_chat}][{nivel}][{ts}][{run_id}][seq:{TELEMETRY_SEQ}] {mensagem}")
+        return
+
+    stage_title = {
+        "PREPARACAO": "Preparação",
+        "EXECUCAO_DETERMINISTICA": "Execução determinística",
+        "EMPACOTAMENTO_ARTEFATOS": "Empacotamento de artefatos",
+        "FECHAMENTO_MULTIMODAL": "Fechamento multimodal",
+        "RESPOSTA_FINAL": "Resposta final",
+    }.get(etapa_chat, etapa_chat.title())
+    level_title = {"INFO": "Info", "WARN": "Aviso", "ERROR": "Erro"}.get(nivel, nivel)
+    print(
+        f"{level_title}: {stage_title} | {componente_chat.title()} | {acao_chat.title()} | "
+        f"{mensagem} (run_id={run_id}, seq={TELEMETRY_SEQ})"
+    )
 
 
 def _timeline_append(manifest, etapa, componente, acao, nivel, mensagem):
@@ -478,10 +494,27 @@ def main():
         default=True,
         help="Habilita telemetria textual amigável no chat durante a execução.",
     )
+    parser.add_argument(
+        "--chat-telemetry-style",
+        choices=("friendly", "technical"),
+        default=os.environ.get("RECEITA_CAFE_CHAT_TELEMETRY_STYLE", "friendly"),
+        help="Formato da telemetria no chat: friendly (sem colchetes) ou technical (com colchetes).",
+    )
+    parser.add_argument(
+        "--creative-execution-mode",
+        choices=("auto", "manual_chat"),
+        default=os.environ.get("RECEITA_CAFE_CREATIVE_EXECUTION_MODE", "auto"),
+        help=(
+            "Define como a imagem criativa será tratada: "
+            "'auto' tenta nativo/fallback automaticamente; "
+            "'manual_chat' não executa geração no Python e mantém pending_multimodal."
+        ),
+    )
     parser.add_argument("--manifest", action="store_true", help="Imprime manifesto JSON ao final.")
     args = parser.parse_args()
-    global CHAT_TELEMETRY_ENABLED
+    global CHAT_TELEMETRY_ENABLED, CHAT_TELEMETRY_STYLE
     CHAT_TELEMETRY_ENABLED = args.chat_telemetry
+    CHAT_TELEMETRY_STYLE = args.chat_telemetry_style
     if not args.creative_image_required and os.environ.get("RECEITA_CAFE_DEV_MODE") != "1":
         parser.error(
             "--no-creative-image-required é permitido apenas em modo de desenvolvimento "
@@ -503,7 +536,10 @@ def main():
         "CONFIG",
         "VALIDATE",
         "INFO",
-        f"Parâmetros recebidos: cenário={args.cenario}, pessoas={args.pessoas}, volume_ml={args.ml or 'auto'}.",
+        (
+            f"Parâmetros recebidos: cenário={args.cenario}, pessoas={args.pessoas}, "
+            f"volume_ml={args.ml or 'auto'}, modo_criativo={args.creative_execution_mode}."
+        ),
     )
     _emit_chat_telemetry(
         run_id,
@@ -775,75 +811,116 @@ def main():
     )
 
     if args.creative_image_required and deterministic_ok:
-        creative_image_path, creative_image_mode = _resolve_creative_image_path_for_closure(
-            args=args,
-            png_path=png_path,
-            suggested_path=suggested_creative_image_path,
-            creative_prompt=creative_prompt,
-        )
-        if creative_image_path:
+        if args.creative_execution_mode == "manual_chat":
             _emit_chat_telemetry(
                 run_id,
                 "MULTIMODAL_CLOSURE",
                 "IMAGEM_CRIATIVA",
                 "DECISION",
-                "INFO",
-                f"Imagem criativa resolvida via modo={creative_image_mode}.",
+                "WARN",
+                (
+                    "Modo manual_chat ativo: gere a imagem com o prompt no chat e "
+                    f"salve em {suggested_creative_image_path}."
+                ),
             )
-            append_jsonl(trace_jsonl_path, event(
-                phase="creative_image_runtime",
-                step_id="creative_image_auto_resolved",
-                title="Imagem criativa resolvida para fechamento",
-                decision=f"Modo de resolução da imagem criativa: {creative_image_mode}.",
-                files_read=[creative_image_path],
-                artifacts=[creative_image_path],
-                status="ok",
-            ))
-            _write_manifest(args.cenario, manifest, run_id)
-            _run_creative_finalizer(manifest_path, creative_image_path)
-            _emit_chat_telemetry(
-                run_id,
-                "MULTIMODAL_CLOSURE",
-                "FINALIZER",
-                "FINALIZE",
-                "INFO",
-                "Finalizador multimodal executado com sucesso.",
-            )
-        else:
             _emit_chat_telemetry(
                 run_id,
                 "MULTIMODAL_CLOSURE",
                 "IMAGEM_CRIATIVA",
                 "BLOCK",
                 "ERROR",
-                "Não foi possível resolver imagem criativa automaticamente para fechamento.",
+                (
+                    "Fechamento multimodal pendente; execute geração nativa no chat "
+                    f"com o prompt {creative_prompt_path} e finalize o manifesto."
+                ),
             )
-            append_jsonl(trace_jsonl_path, event(
-                phase="creative_image_runtime",
-                step_id="creative_image_auto_resolved",
-                title="Imagem criativa indisponível para fechamento",
-                decision="Não foi possível resolver imagem criativa automaticamente; fechamento multimodal permaneceu pendente.",
-                artifacts=[suggested_creative_image_path],
-                status="failed",
-            ))
-        with open(manifest_path, "r", encoding="utf-8") as manifest_file:
-            manifest = json.load(manifest_file)
-        checks = manifest.get("checks", checks)
-        missing = manifest.get("missing", missing)
-        manifest["flow_trace_real_validated"] = checks.get("flow_trace_real", False)
-        if manifest.get("completion_allowed", False):
-            manifest["completion_block_reason"] = None
-            manifest["error_classification"] = None
-            manifest["recovery_hint"] = None
-        _timeline_append(
-            manifest,
-            "MULTIMODAL_CLOSURE",
-            "FINALIZER",
-            "FINALIZE",
-            "INFO" if manifest.get("completion_allowed", False) else "ERROR",
-            "Fechamento multimodal concluído." if manifest.get("completion_allowed", False) else "Fechamento multimodal pendente.",
-        )
-        _write_manifest(args.cenario, manifest, run_id)
+            with open(manifest_path, "r", encoding="utf-8") as manifest_file:
+                manifest = json.load(manifest_file)
+            manifest["status"] = "pending_multimodal"
+            manifest["completion_allowed"] = False
+            manifest["multimodal_status"] = "pending"
+            manifest["completion_block_reason"] = "creative_image_pending"
+            manifest["agent_next_action"] = "generate_creative_image_in_chat_then_run_finalizer"
+            manifest["checks"]["creative_image_exists"] = False
+            _timeline_append(
+                manifest,
+                "MULTIMODAL_CLOSURE",
+                "FINALIZER",
+                "BLOCK",
+                "ERROR",
+                "Modo manual_chat: aguardando imagem criativa gerada no chat para finalizar.",
+            )
+            _write_manifest(args.cenario, manifest, run_id)
+        else:
+            creative_image_path, creative_image_mode = _resolve_creative_image_path_for_closure(
+                args=args,
+                png_path=png_path,
+                suggested_path=suggested_creative_image_path,
+                creative_prompt=creative_prompt,
+            )
+            if creative_image_path:
+                _emit_chat_telemetry(
+                    run_id,
+                    "MULTIMODAL_CLOSURE",
+                    "IMAGEM_CRIATIVA",
+                    "DECISION",
+                    "INFO",
+                    f"Imagem criativa resolvida via modo={creative_image_mode}.",
+                )
+                append_jsonl(trace_jsonl_path, event(
+                    phase="creative_image_runtime",
+                    step_id="creative_image_auto_resolved",
+                    title="Imagem criativa resolvida para fechamento",
+                    decision=f"Modo de resolução da imagem criativa: {creative_image_mode}.",
+                    files_read=[creative_image_path],
+                    artifacts=[creative_image_path],
+                    status="ok",
+                ))
+                _write_manifest(args.cenario, manifest, run_id)
+                _run_creative_finalizer(manifest_path, creative_image_path)
+                _emit_chat_telemetry(
+                    run_id,
+                    "MULTIMODAL_CLOSURE",
+                    "FINALIZER",
+                    "FINALIZE",
+                    "INFO",
+                    "Finalizador multimodal executado com sucesso.",
+                )
+            else:
+                _emit_chat_telemetry(
+                    run_id,
+                    "MULTIMODAL_CLOSURE",
+                    "IMAGEM_CRIATIVA",
+                    "BLOCK",
+                    "ERROR",
+                    "Não foi possível resolver imagem criativa automaticamente para fechamento.",
+                )
+                append_jsonl(trace_jsonl_path, event(
+                    phase="creative_image_runtime",
+                    step_id="creative_image_auto_resolved",
+                    title="Imagem criativa indisponível para fechamento",
+                    decision="Não foi possível resolver imagem criativa automaticamente; fechamento multimodal permaneceu pendente.",
+                    artifacts=[suggested_creative_image_path],
+                    status="failed",
+                ))
+            with open(manifest_path, "r", encoding="utf-8") as manifest_file:
+                manifest = json.load(manifest_file)
+            checks = manifest.get("checks", checks)
+            missing = manifest.get("missing", missing)
+            manifest["flow_trace_real_validated"] = checks.get("flow_trace_real", False)
+            if manifest.get("completion_allowed", False):
+                manifest["completion_block_reason"] = None
+                manifest["error_classification"] = None
+                manifest["recovery_hint"] = None
+            _timeline_append(
+                manifest,
+                "MULTIMODAL_CLOSURE",
+                "FINALIZER",
+                "FINALIZE",
+                "INFO" if manifest.get("completion_allowed", False) else "ERROR",
+                "Fechamento multimodal concluído." if manifest.get("completion_allowed", False) else "Fechamento multimodal pendente.",
+            )
+            _write_manifest(args.cenario, manifest, run_id)
 
     _emit_chat_telemetry(
         run_id,

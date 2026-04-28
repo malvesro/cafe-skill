@@ -39,7 +39,7 @@ PY
 }
 
 echo "[SMOKE] A: execução padrão deve fechar multimodal com sucesso"
-python3 "$SCRIPT" --cenario debugging --pessoas 2 --manifest >"$OUT_A" 2>&1
+python3 "$SCRIPT" --cenario debugging --pessoas 2 --manifest --chat-telemetry-style technical >"$OUT_A" 2>&1
 extract_manifest "$OUT_A" "$MAN_A"
 
 python3 - "$MAN_A" <<'PY'
@@ -98,7 +98,7 @@ echo "[SMOKE][OK] A"
 
 echo "[SMOKE] B: bloqueio multimodal deve expor motivo no chat"
 set +e
-python3 "$SCRIPT" --cenario debugging --pessoas 2 --manifest --creative-image-path "$OUT_DIR/_arquivo_inexistente_${RUN_ID}.png" >"$OUT_B" 2>&1
+python3 "$SCRIPT" --cenario debugging --pessoas 2 --manifest --chat-telemetry-style technical --creative-image-path "$OUT_DIR/_arquivo_inexistente_${RUN_ID}.png" >"$OUT_B" 2>&1
 rc_b=$?
 set -e
 if [[ $rc_b -eq 0 ]]; then
