@@ -307,6 +307,13 @@ Ao finalizar o atendimento, o Agente **deve**:
 ## 🌟 Contexto Didático
 Um café excepcional é a intersecção entre **química e técnica**. Esta skill orquestra as variáveis de temperatura, turbulência e tempo, garantindo que o agente não apenas "informe", mas **garanta a qualidade** do resultado final.
 
+### 🏛️ Inteligência Didática & Arquitetural
+O agente **DEVE** consultar os documentos de referência para fornecer respostas embasadas:
+- **`references/ARCH_SUMMARY.md`**: Para questões sobre design, arquitetura v5.0, portabilidade Base64 e o padrão **Agent Skills**.
+- **`references/REFERENCE.md`**: Para questões sobre métodos avançados (Prensa Francesa, Cold Brew), química da extração, guias de moagem e anti-padrões de preparo.
+
+O objetivo é transformar o Agente em um consultor sênior capaz de explicar tanto a **engenharia de software** quanto a **engenharia de extração** por trás da skill.
+
 ---
 
 ## 🗺️ Business Logic & Terroir Matrix (Expandida)
