@@ -132,7 +132,13 @@ Regras de saída:
 
 Para melhorar UX e rastreabilidade em tempo real, mensagens de progresso no chat devem seguir o formato:
 
-`[ETAPA][COMPONENTE][ACAO] Mensagem curta e acionável`
+Modo padrão `friendly` (sem colchetes):
+
+`Info: Preparação | Orquestrador | Iniciar | Mensagem curta e acionável (run_id=..., seq=...)`
+
+Modo opcional `technical` (com colchetes):
+
+`[ETAPA][COMPONENTE][ACAO][NIVEL][timestamp][run_id][seq:N] Mensagem curta e acionável`
 
 Níveis suportados:
 
@@ -146,6 +152,8 @@ Padrões de uso:
 - `ACAO` deve ser verbo curto em PT-BR (`INICIAR`, `EXECUTAR`, `VALIDAR`, `FINALIZAR`, `BLOQUEAR`).
 - Mensagem textual deve ter no máximo 1 frase.
 - Em `ERROR`, incluir ação recomendada na mesma linha.
+- Para usuário final, preferir `friendly` para evitar aparência de log técnico.
+- Usar `technical` apenas quando depuração explícita for solicitada.
 
 Exemplos:
 

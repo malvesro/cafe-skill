@@ -222,16 +222,19 @@ Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) 
 ### Telemetria no Chat (UX)
 Além do Flow Trace técnico, o orquestrador agora emite telemetria amigável no chat para reduzir ambiguidade de estado durante a execução.
 
-Formato:
+Formato padrão (friendly, sem colchetes):
 
-`[ETAPA_PTBR][COMPONENTE_PTBR][ACAO_PTBR][NIVEL][timestamp][run_id][seq:N] mensagem`
+`Info: Preparação | Orquestrador | Iniciar | Mensagem... (run_id=..., seq=...)`
 
 Exemplos reais:
 
-- `[PREPARACAO][ORQUESTRADOR][INICIAR][INFO][...][...][seq:1] Inicializando execução canônica da skill.`
-- `[EMPACOTAMENTO_ARTEFATOS][RASTRO_EXECUCAO][VALIDAR][INFO][...][...][seq:9] Rastro de execução real validado=sim.`
-- `[FECHAMENTO_MULTIMODAL][PORTAO][DECIDIR][WARN][...][...][seq:12] estado=pending_multimodal, conclusao_permitida=False, motivo=creative_image_pending, próximo_passo=gerar imagem criativa PNG e finalizar manifesto.`
-- `[RESPOSTA_FINAL][ORQUESTRADOR][CONCLUIR][INFO][...][...][seq:16] Resposta final liberada (status=ok).`
+- `Info: Preparação | Orquestrador | Iniciar | Inicializando execução canônica da skill. (run_id=..., seq=1)`
+- `Info: Empacotamento de artefatos | Rastro_execucao | Validar | Rastro de execução real validado=sim. (run_id=..., seq=9)`
+- `Aviso: Fechamento multimodal | Portao | Decidir | estado=pending_multimodal, conclusao_permitida=False, motivo=creative_image_pending, próximo_passo=gerar imagem criativa PNG e finalizar manifesto. (run_id=..., seq=12)`
+- `Info: Resposta final | Orquestrador | Concluir | Resposta final liberada (status=ok). (run_id=..., seq=16)`
+
+Formato técnico opcional (com colchetes):
+- Ative com `--chat-telemetry-style technical` quando quiser depuração detalhada no próprio chat.
 
 ---
 *Este projeto foi criado para inspirar. Se você achava que Agentes de IA eram apenas sobre texto, pegue uma xícara de café e explore o código. O futuro é modular.* 🚀☕

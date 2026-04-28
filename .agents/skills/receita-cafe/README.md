@@ -200,6 +200,7 @@ Tabela de referência rápida para saber o que cada opção faz e onde ela se ap
 | `--creative-image-required` / `--no-creative-image-required` | `receita_completa.py` | `true` | Não | `--no-creative-image-required` (somente dev) |
 | `--creative-image-path` | `receita_completa.py` | vazio | Não | `--creative-image-path .ia/output/imagem.png` |
 | `--chat-telemetry` / `--no-chat-telemetry` | `receita_completa.py` | `true` | Não | `--no-chat-telemetry` |
+| `--chat-telemetry-style` | `receita_completa.py` | `friendly` | Não | `--chat-telemetry-style technical` |
 | `--manifest` | `receita_completa.py` | `false` | Não | `--manifest` |
 
 ### Regras de Inferência por Prompt (Prompt-First)
