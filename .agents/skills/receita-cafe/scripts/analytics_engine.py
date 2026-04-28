@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import json
+import base64
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from output_paths import resolve_output_dir
@@ -24,7 +25,7 @@ def _get_font(size: int, bold: bool = False):
             return ImageFont.truetype(path, size)
     return ImageFont.load_default()
 
-def processar_dashboard(flow: bool = False):
+def processar_dashboard(flow: bool = False, gerar_arquivo: bool = True):
     def _log_internal(step, desc):
         if flow: print(f"       │  ├─ [DATA] {step}: {desc}")
 
@@ -101,20 +102,82 @@ def processar_dashboard(flow: bool = False):
         
         row_y += 30
 
-    # Humor / Tech Insights
-    draw.rectangle([30, H-120, W-30, H-30], fill=_hex("#141420"), outline=accent)
-    humor = "ENGINE STATUS: 100% OPERACIONAL. SYSTEM STRESS LEVEL: "
-    stress = "NOMINAL" if scenarios.get("incident", 0) == 0 else "CRITICAL (Incident detected!)"
-    draw.text((50, H-100), humor + stress, font=_get_font(14, True), fill=text_color)
-    draw.text((50, H-70), "💡 DICA: Seu consumo de Mogiana subiu 15%. Verifique o estoque de grãos.", font=_get_font(12), fill=_hex("#7986CB"))
+    # 4. Geração de Narrativa (Storytelling)
+    _log_internal("Storytelling", "Gerando interpretação narrativa dos dados.")
+    incident_count = scenarios.get("incident", 0)
+    debug_count = scenarios.get("debugging", 0)
+    
+    status_humor = "ESTÁVEL"
+    narrativa = "O time apresenta um consumo equilibrado, sugerindo sprints bem planejadas."
+    
+    if incident_count > 0:
+        status_humor = "MODO INCÊNDIO"
+        narrativa = f"Detectamos {incident_count} extrações durante incidentes. O time está operando sob alta pressão (ou os servidores estão tentando se auto-destruir)."
+    elif debug_count > (len(history) / 2):
+        status_humor = "LABIRINTO DE CÓDIGO"
+        narrativa = "A maioria das extrações foca em Debugging. Recomendo revisar os testes unitários ou contratar um exorcista para o código-fonte."
+    
+    if total_ml > 5000:
+        narrativa += " O volume total de café sugere que o time já é 30% cafeína por peso molecular."
 
-    # Salvar
+    # 5. Salvar Imagem
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"dashboard_barista_{ts}.png"
     path = os.path.join(OUTPUT_DIR, filename)
     _log_internal("Export", f"Gerando dashboard visual em {filename}")
     img.save(path, "PNG")
-    return path
+
+    # 6. Gerar Relatório Markdown Portátil (Base64)
+    if gerar_arquivo:
+        _log_internal("Packaging", "Gerando relatório portátil do Dashboard.")
+        with open(path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+        
+        md_filename = f"dashboard_report_{ts}.md"
+        md_path = os.path.join(OUTPUT_DIR, md_filename)
+        
+        report_content = f"""# 📊 Relatório de Auditoria: Barista Analytics
+
+## 🎭 Interpretação do Barista
+**Status do Sistema:** `{status_humor}`
+
+{narrativa}
+
+---
+
+## 📉 Visualização de Impacto
+![Dashboard](data:image/png;base64,{encoded_string})
+
+---
+*Gerado automaticamente pela Barista Engine v3.0*
+"""
+        with open(md_path, "w") as f:
+            f.write(report_content)
+    else:
+        md_path = "N/A"
+
+    return f"{path}|{md_path}|{status_humor}|{narrativa}"
+
+def obter_secao_dashboard_md():
+    """Retorna apenas o fragmento Markdown do dashboard para incorporação."""
+    res = processar_dashboard(flow=False, gerar_arquivo=False)
+    if "|" in res:
+        img_path, md_path, status_humor, narrativa = res.split("|")
+        with open(img_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+        
+        return f"""
+---
+
+## 📊 Auditoria de Impacto: Barista Analytics
+**Status do Sistema:** `{status_humor}`
+
+{narrativa}
+
+![Dashboard de Histórico](data:image/png;base64,{encoded_string})
+"""
+    return ""
 
 if __name__ == "__main__":
-    print(f"Testando Dashboard: {processar_dashboard()}")
+    res = processar_dashboard(flow=True)
+    print(f"Dashboard Gerado: {res}")
