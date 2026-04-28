@@ -70,29 +70,27 @@ python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num
 
 O arquivo PNG é salvo em `.ia/output/cafe_<cenario>_<timestamp>.png`, o documento portátil em `.ia/output/receita_<cenario>_<timestamp>.md` e o prompt criativo em `.ia/output/prompt_criativo_<cenario>_<timestamp>.txt` quando o runtime canonico for usado.
 
-### 🛤️ Flow Trace Obrigatório
-Toda execução completa da skill **DEVE** emitir telemetria em tempo real e persistida:
+### 🛤️ Telemetria & Rastro de Execução (Lean)
+Toda execução deve gerar rastro de telemetria para auditoria, mas com foco em **UX Limpa**:
 
-- Console em tempo real com `[FLOW]`.
-- `.ia/output/flow_trace_<cenario>_<timestamp>.jsonl` para eventos append-only.
-- `.ia/output/flow_trace_<cenario>_<timestamp>.json` para auditoria estruturada.
-- `.ia/output/flow_trace_<cenario>_<timestamp>.html` para visualização amigável.
-- Links para a telemetria no manifesto e no Markdown portátil.
+1.  **Artefato Único:** Gerar apenas um arquivo `.ia/output/flow_trace_<cenario>_<timestamp>.json` contendo o histórico estruturado da execução. (O formato JSONL deve ser usado apenas internamente durante o runtime, se necessário).
+2.  **Sumário Embutido:** O documento Markdown portátil **DEVE** conter uma seção de "Log de Execução" simplificada (tabela ou lista) com as etapas e o status final de cada componente.
+3.  **Link de Auditoria:** O Markdown deve conter apenas um link discreto no rodapé para o arquivo JSON de auditoria técnica completa.
 
-O nível de detalhe pode variar no futuro, mas a existência da telemetria não é opcional nesta skill.
+**Justificativa:** Reduzir a carga cognitiva do usuário e garantir que o documento portátil seja legível sem depender de múltiplos arquivos externos de log.
 
 ### 🎨 Creative Image Runtime (Padrão Sênior)
-A imagem criativa é uma fase **agent-native** obrigatória. O agente deve garantir a entrega de um arquivo físico real e sua integração total no artefato portátil:
+A imagem criativa é uma fase **agent-native** obrigatória. O agente deve garantir a entrega de um arquivo físico real e sua integração total no artefato portátil seguindo a ordem lógica:
 
-1. **Geração:** Utilizar o prompt em `creative_prompt_path`.
-2. **Persistência Física:** Baixar a imagem para o caminho em `suggested_creative_image_path`.
-3. **Portabilidade Narrativa & Visual (Unicidade):** O agente **DEVE** atualizar o arquivo Markdown portátil (`.md`) com:
-   - **Storytelling & Humor:** Incluídos no topo do documento.
-   - **Imagens Base64 (Única Fonte):** Codificar tanto o Infográfico Técnico quanto a Imagem Criativa em **Base64** e inseri-los diretamente.
-   - **Proibição de Redundância:** O documento **NÃO** deve conter links externos, caminhos de arquivo locais (ex: `![Img](caminho.png)`) ou múltiplas seções para a mesma imagem. A versão Base64 é a única permitida.
+1. **Geração & Persistência:** Gerar e baixar a imagem para o caminho em `suggested_creative_image_path`.
+2. **Portabilidade Narrativa & Visual (Sequencial):** O agente **DEVE** atualizar o Markdown portátil (`.md`) nesta ordem:
+   - **Topo:** Storytelling & Humor.
+   - **Corpo:** Imagem Criativa (Base64).
+   - **Final:** Auditoria de Impacto/Dashboard de Histórico (Base64).
+3. **Unicidade:** O documento não deve conter links redundantes. Apenas a versão Base64 integrada de cada imagem é permitida.
 4. **Sincronização:** Atualizar o manifesto JSON.
 
-O agente só considera a tarefa concluída quando o Markdown portátil for o reflexo fiel, limpo e autossuficiente da experiência.
+O agente só considera a tarefa concluída quando o Markdown portátil for o reflexo fiel e ordenado da experiência completa.
 
 ### ✅ Definition of Done do Runtime Completo
 Antes de responder como entrega concluída, o agente **DEVE** verificar:
