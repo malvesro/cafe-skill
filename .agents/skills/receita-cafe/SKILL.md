@@ -81,36 +81,28 @@ Toda execução completa da skill **DEVE** emitir telemetria em tempo real e per
 
 O nível de detalhe pode variar no futuro, mas a existência da telemetria não é opcional nesta skill.
 
-### 🎨 Creative Image Runtime
-A imagem criativa é uma fase **agent-native** posterior ao runtime determinístico. Quando o manifesto indicar `creative_image_required: true`, o agente **DEVE**:
+### 🎨 Creative Image Runtime (Padrão Sênior)
+A imagem criativa é uma fase **agent-native** obrigatória. O agente deve garantir a entrega de um arquivo físico real e sua integração total no artefato portátil:
 
-1. Ler o `creative_prompt_path`.
-2. Chamar a ferramenta nativa de geração de imagem com esse prompt.
-3. Copiar a imagem final para `.ia/output/imagem_criativa_<cenario>_<timestamp>.png`.
-4. Executar `scripts/finalizar_imagem_criativa.py --manifest <manifest_path> --creative-image-path <png>`.
-5. Responder somente depois que `creative_image_path` estiver preenchido no manifesto.
+1. **Geração:** Utilizar o prompt em `creative_prompt_path`.
+2. **Persistência Física:** Baixar a imagem para o caminho em `suggested_creative_image_path`.
+3. **Portabilidade Narrativa & Visual (Unicidade):** O agente **DEVE** atualizar o arquivo Markdown portátil (`.md`) com:
+   - **Storytelling & Humor:** Incluídos no topo do documento.
+   - **Imagens Base64 (Única Fonte):** Codificar tanto o Infográfico Técnico quanto a Imagem Criativa em **Base64** e inseri-los diretamente.
+   - **Proibição de Redundância:** O documento **NÃO** deve conter links externos, caminhos de arquivo locais (ex: `![Img](caminho.png)`) ou múltiplas seções para a mesma imagem. A versão Base64 é a única permitida.
+4. **Sincronização:** Atualizar o manifesto JSON.
 
-Se o manifesto retornar `status: "pending_multimodal"` ou `completion_allowed: false`, o agente **NAO PODE** enviar resposta final ao usuário. Ele deve executar imediatamente `agent_next_action`, normalmente gerar a imagem criativa com a ferramenta nativa de imagem e rodar o finalizador.
-
-Se a ferramenta nativa de imagem não estiver disponível, o agente deve declarar a limitação explicitamente e manter o manifesto como multimodal pendente. Esse é o único caso em que uma resposta com pendência é aceitável.
+O agente só considera a tarefa concluída quando o Markdown portátil for o reflexo fiel, limpo e autossuficiente da experiência.
 
 ### ✅ Definition of Done do Runtime Completo
 Antes de responder como entrega concluída, o agente **DEVE** verificar:
-
-- A CLI da skill foi executada, não apenas consultada.
-- O Flow Tracer real apareceu na saída (`[FLOW]`).
-- O PNG técnico foi criado em `.ia/output/cafe_<cenario>_<timestamp>.png`.
-- O Markdown portátil foi criado em `.ia/output/receita_<cenario>_<timestamp>.md`.
-- O Markdown contém o infográfico embutido via `data:image/png;base64`.
-- O prompt da imagem criativa foi produzido e informado como artefato rastreável.
-- O Flow Trace JSONL foi criado.
-- O Flow Trace JSON foi criado.
-- O Flow Trace HTML foi criado.
-- O Markdown portátil contém links para a telemetria.
-- Se `creative_image_required` for `true`, `creative_image_path` deve apontar para um PNG existente.
-- `completion_allowed` deve estar `true` antes da resposta final.
-- Se a ferramenta nativa de imagem não estiver disponível, a limitação deve ser declarada explicitamente e o manifesto deve permanecer com `multimodal_status: "pending"`.
-- Os caminhos finais dos artefatos devem ser apresentados ao usuário.
+- [x] O motor determinístico foi executado com sucesso.
+- [x] O PNG técnico e o Markdown portátil foram criados.
+- [x] A imagem criativa foi **gerada, baixada e salva localmente**.
+- [x] **Portabilidade Total:** O documento Markdown contém **ambas as imagens** (técnica e criativa) incorporadas diretamente via **Base64 Data URI** (`![Imagem](data:image/png;base64,...)`).
+- [x] O manifesto JSON reflete o estado "ok" e aponta para caminhos existentes.
+- [x] O rastro de execução (Flow Trace) está completo e validado.
+- [x] A resposta final contém o resumo de caminhos de todos os artefatos.
 
 ### 🧭 Runbook de Estados de Execução
 
