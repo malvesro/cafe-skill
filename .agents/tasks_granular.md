@@ -108,3 +108,6 @@
 ### [x] T76: Criar FAQ curta sobre ambiguidades comuns (prompt vs CLI, bypass dev, imagem criativa pendente)
 ### [x] T77: Revisar consistência de termos entre README raiz, README da skill e SKILL.md para novos blocos
 ### [x] T78: Verificar renderização Markdown final (tabelas, fences, mermaid) e legibilidade móvel/desktop
+### [x] T79: Garantir aviso explícito de artefatos na saída final (markdown, infográfico, imagem criativa)
+### [x] T80: Sincronizar READMEs com o bloco obrigatório `[RESUMO_ENTREGA]`
+### [x] T81: Atualizar SKILL.md com regra obrigatória de exibição do `[RESUMO_ENTREGA]`

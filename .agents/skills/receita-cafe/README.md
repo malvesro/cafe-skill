@@ -170,6 +170,17 @@ O wrapper falha a execução se algum item essencial não for encontrado:
 *   Flow Trace JSONL, JSON e HTML persistidos em `.ia/output/flow_trace_[cenario]_[timestamp].*`.
 *   Links de telemetria inseridos no Markdown portatil.
 
+Resumo de entrega obrigatório na resposta do runtime:
+
+```text
+[RESUMO_ENTREGA]
+- Markdown portátil: <caminho absoluto>
+- Infográfico técnico: <caminho absoluto>
+- Imagem criativa: <caminho absoluto> ou pendente (destino sugerido)
+```
+
+Esse bloco deve aparecer mesmo quando houver pendência multimodal, para deixar claro o que já foi gerado e o que falta.
+
 ### Quando usar cada script (sem ambiguidade)
 
 | Script | Use quando... | Não use quando... |

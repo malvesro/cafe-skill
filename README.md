@@ -219,6 +219,18 @@ python3 scripts/receita_completa.py --cenario incident --pessoas 8
 
 Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) com os caminhos finais e os checks da Definition of Done, incluindo os caminhos de telemetria `flow_trace_*.jsonl`, `flow_trace_*.json` e `flow_trace_*.html` em `.ia/output`. Se `creative_image_required` for `true`, o wrapper retorna `status: "pending_multimodal"` e `completion_allowed: false` (com exit code diferente de zero); o Agente deve gerar a imagem criativa, copiá-la para `suggested_creative_image_path` e finalizar o manifesto antes de considerar a entrega multimodal concluída.
 
+### Resumo de Entrega (obrigatório na resposta)
+Além do manifesto, o runtime agora imprime um bloco de saída amigável com os artefatos principais:
+
+```text
+[RESUMO_ENTREGA]
+- Markdown portátil: /abs/path/receita_<cenario>_<timestamp>.md
+- Infográfico técnico: /abs/path/cafe_<cenario>_<timestamp>.png
+- Imagem criativa: /abs/path/imagem_criativa_<cenario>_<timestamp>.png
+```
+
+Quando a imagem criativa ainda não foi finalizada (ex.: `manual_chat`), a terceira linha sai como pendência com destino sugerido.
+
 ### Telemetria no Chat (UX)
 Além do Flow Trace técnico, o orquestrador agora emite telemetria amigável no chat para reduzir ambiguidade de estado durante a execução.
 

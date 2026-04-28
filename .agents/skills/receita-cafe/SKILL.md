@@ -127,6 +127,10 @@ Regras de saída:
 
 - Se `completion_allowed=false`, a execução deve retornar erro para bloquear conclusão prematura.
 - Se `creative_image_required=true`, a resposta final ao usuário só é permitida após `creative_image_path` válido no manifesto.
+- A resposta técnica do runtime deve incluir o bloco `[RESUMO_ENTREGA]` com:
+  - caminho do Markdown portátil;
+  - caminho do infográfico técnico;
+  - caminho da imagem criativa (ou pendência com destino sugerido).
 
 ### 💬 Contrato de Telemetria no Chat
 
