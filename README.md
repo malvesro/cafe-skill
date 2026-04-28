@@ -184,6 +184,26 @@ Aqui, a cafeína é o combustível e as **Agent Skills** são o motor que garant
 
 ## 🛠️ Como rodar a demonstração?
 
+### Comece por Intenção (Guia Rápido)
+Use este atalho para escolher o melhor caminho sem precisar decorar parâmetros:
+
+| Sua intenção | Caminho recomendado | Exemplo |
+| :--- | :--- | :--- |
+| Quero só uma sugestão no chat | Prompt natural para o agente | `"Sugira um café para reunião de arquitetura com 6 pessoas."` |
+| Quero entrega completa com rastreabilidade | `receita_completa.py` (recomendado) | `python3 scripts/receita_completa.py --cenario planning --pessoas 6` |
+| Quero testar cálculo técnico isolado | `validar_cafe.py` | `python3 scripts/validar_cafe.py --cenario debugging --pessoas 2 --flow --imagem --markdown` |
+| Quero fechar multimodal pendente | `finalizar_imagem_criativa.py` | `python3 scripts/finalizar_imagem_criativa.py --manifest <manifesto> --creative-image-path <png>` |
+
+Regra prática:
+1. Use `receita_completa.py` como padrão para execução fim a fim.
+2. Use `validar_cafe.py` quando o foco for apenas cálculo/artefato técnico.
+3. Só finalize resposta ao usuário quando o manifesto tiver `completion_allowed=true`.
+
+Referência detalhada:
+1. Parâmetros e defaults: `.agents/skills/receita-cafe/README.md` na seção `Parâmetros Canônicos (CLI)`.
+2. Prompt -> parâmetros: seção `Matriz Didática: Tipo de Pedido -> Parâmetros Efetivos`.
+3. Decisão final por manifesto: seção `Como Ler o Manifesto (Guia Rápido)`.
+
 Se você já tem o Agente configurado, basta um pedido simples e natural para ver a magia acontecer:
 
 > *"Barista, preciso de um café intenso para uma **War Room de incidente crítico** com 8 pessoas!"*
@@ -198,6 +218,20 @@ python3 scripts/receita_completa.py --cenario incident --pessoas 8
 ```
 
 Ao final, o wrapper imprime e persiste um manifesto JSON (`[RUNTIME_MANIFEST]`) com os caminhos finais e os checks da Definition of Done, incluindo os caminhos de telemetria `flow_trace_*.jsonl`, `flow_trace_*.json` e `flow_trace_*.html` em `.ia/output`. Se `creative_image_required` for `true`, o wrapper retorna `status: "pending_multimodal"` e `completion_allowed: false` (com exit code diferente de zero); o Agente deve gerar a imagem criativa, copiá-la para `suggested_creative_image_path` e finalizar o manifesto antes de considerar a entrega multimodal concluída.
+
+### Telemetria no Chat (UX)
+Além do Flow Trace técnico, o orquestrador agora emite telemetria amigável no chat para reduzir ambiguidade de estado durante a execução.
+
+Formato:
+
+`[ETAPA_PTBR][COMPONENTE_PTBR][ACAO_PTBR][NIVEL][timestamp][run_id][seq:N] mensagem`
+
+Exemplos reais:
+
+- `[PREPARACAO][ORQUESTRADOR][INICIAR][INFO][...][...][seq:1] Inicializando execução canônica da skill.`
+- `[EMPACOTAMENTO_ARTEFATOS][RASTRO_EXECUCAO][VALIDAR][INFO][...][...][seq:9] Rastro de execução real validado=sim.`
+- `[FECHAMENTO_MULTIMODAL][PORTAO][DECIDIR][WARN][...][...][seq:12] estado=pending_multimodal, conclusao_permitida=False, motivo=creative_image_pending, próximo_passo=gerar imagem criativa PNG e finalizar manifesto.`
+- `[RESPOSTA_FINAL][ORQUESTRADOR][CONCLUIR][INFO][...][...][seq:16] Resposta final liberada (status=ok).`
 
 ---
 *Este projeto foi criado para inspirar. Se você achava que Agentes de IA eram apenas sobre texto, pegue uma xícara de café e explore o código. O futuro é modular.* 🚀☕

@@ -77,14 +77,22 @@ Para visualizadores que suportam Mermaid (GitHub/VS Code):
 
 ```mermaid
 flowchart TD
-    IDLE[IDLE] -->|1 Iniciar Skill| PREP[PREPARACAO]
-    PREP -->|2 Despejo 2x po| BLOOM[BLOOMING]
-    BLOOM -->|3 Filtragem| EXT[EXTRACAO]
-    EXT --> QA[QA CHECKPOINT]
-    QA -->|PASS| READY[CAFE PRONTO]
-    READY --> FINISHED[FINISHED]
-    QA -->|FAIL 5 Tempo Erratico| GRIND[AJUSTE DE MOAGEM]
-    GRIND --> PREP
+    IDLE[IDLE] --> PRE[PRE-FLIGHT]
+    PRE --> DET[DETERMINISTIC]
+    DET --> PACK[ARTIFACT_PACKAGING]
+
+    PACK -->|creative_image_required=true| MULTI[MULTIMODAL_CLOSURE]
+    PACK -->|creative_image_required=false + RECEITA_CAFE_DEV_MODE=1| DEV_BYPASS[DEV_BYPASS_OK]
+    DEV_BYPASS --> FINAL[FINAL_RESPONSE]
+
+    MULTI -->|--creative-image-path válido| FINALIZER[FINALIZADOR]
+    MULTI -->|ferramenta nativa disponível| NATIVE[NATIVE_IMAGE_GENERATION]
+    NATIVE --> FINALIZER
+    MULTI -->|sem ferramenta nativa| FALLBACK[FALLBACK_DETERMINISTICO]
+    FALLBACK --> FINALIZER
+
+    FINALIZER --> FINAL
+    FINAL --> DONE[FINISHED]
 ```
 
 > 🖼️ **Visual Check:** Se o seu visualizador suportar imagens locais, consulte o infográfico detalhado em: `./assets/flowchart.png`
@@ -162,6 +170,77 @@ O wrapper falha a execução se algum item essencial não for encontrado:
 *   Flow Trace JSONL, JSON e HTML persistidos em `.ia/output/flow_trace_[cenario]_[timestamp].*`.
 *   Links de telemetria inseridos no Markdown portatil.
 
+### Quando usar cada script (sem ambiguidade)
+
+| Script | Use quando... | Não use quando... |
+| :--- | :--- | :--- |
+| `scripts/receita_completa.py` | Você precisa da jornada completa: cálculo + infográfico técnico + markdown portátil + prompt criativo + manifesto + fechamento multimodal. | Você quer apenas um teste rápido de cálculo sem orquestração completa. |
+| `scripts/validar_cafe.py` | Você quer validar rapidamente parâmetros técnicos, JSON, dashboard ou geração pontual de artefatos. | Você precisa do contrato completo de runtime com gate multimodal e bloqueio de conclusão. |
+| `scripts/finalizar_imagem_criativa.py` | Você já possui manifesto pendente + PNG criativo e quer fechar o contrato multimodal. | Você ainda não executou o runtime completo para gerar manifesto. |
+
+### Parâmetros Canônicos (CLI)
+Tabela de referência rápida para saber o que cada opção faz e onde ela se aplica.
+
+| Parâmetro | Onde aplica | Default | Obrigatório | Exemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `--cenario` | `receita_completa.py`, `validar_cafe.py` | sem default | Sim (no runtime completo) | `--cenario incident` |
+| `--pessoas` | `receita_completa.py`, `validar_cafe.py` | `1` no `validar_cafe.py` | Sim (no runtime completo) | `--pessoas 6` |
+| `--ml` | ambos | inferido por pessoas (`pessoas * 150`) | Não | `--ml 900` |
+| `--regiao` | ambos | inferida pelo cenário | Não | `--regiao Cerrado` |
+| `--temp` | ambos | inferida por matriz de terroir | Não | `--temp 94` |
+| `--tempo` | ambos | inferido por perfil de extração | Não | `--tempo 210` |
+| `--tds_agua` | ambos | `100` (recomendado) | Não | `--tds_agua 120` |
+| `--story` | ambos | vazio | Não | `--story "War room com foco"` |
+| `--flow` | `validar_cafe.py` | ativo por padrão | Não | `--flow` |
+| `--imagem` | `validar_cafe.py` | `false` | Não | `--imagem` |
+| `--markdown` | `validar_cafe.py` | `false` | Não | `--markdown` |
+| `--json` | `validar_cafe.py` | `false` | Não | `--json` |
+| `--dashboard` | `validar_cafe.py` | `false` | Não | `--dashboard` |
+| `--artifacts-json` | `validar_cafe.py` | `false` | Não | `--artifacts-json` |
+| `--creative-image-required` / `--no-creative-image-required` | `receita_completa.py` | `true` | Não | `--no-creative-image-required` (somente dev) |
+| `--creative-image-path` | `receita_completa.py` | vazio | Não | `--creative-image-path .ia/output/imagem.png` |
+| `--chat-telemetry` / `--no-chat-telemetry` | `receita_completa.py` | `true` | Não | `--no-chat-telemetry` |
+| `--manifest` | `receita_completa.py` | `false` | Não | `--manifest` |
+
+### Regras de Inferência por Prompt (Prompt-First)
+Quando o usuário pede em linguagem natural, o agente converte o pedido em parâmetros efetivos.
+
+1. Pedido singular (ex.: "faz um café para mim"):
+- Inferência: `pessoas=1`.
+- Se `ml` não for informado: `ml=150`.
+
+2. Pedido de reunião/time sem quantidade explícita:
+- O agente deve perguntar: "Para quantas pessoas será o café?" antes de executar.
+- Não deve assumir volume alto sem quorum.
+
+3. Pedido com pessoas explícitas (ex.: "15 pessoas"):
+- Inferência: `ml = pessoas * 150`.
+- Exemplo: `15 pessoas -> ml=2250`.
+
+4. Pedido por cenário (ex.: debugging, incident, planning):
+- `cenario` é definido pelo contexto textual.
+- `regiao`, `temp` e `tempo` podem ser inferidos pela matriz sensorial/técnica.
+
+5. Pedido explícito de visual/infográfico:
+- O agente deve usar runtime completo (`receita_completa.py`) para garantir rastreabilidade e artefatos.
+
+6. Pedido com imagem criativa obrigatória:
+- `creative_image_required=true` (padrão).
+- Só concluir resposta final com `completion_allowed=true`.
+
+### Matriz Didática: Tipo de Pedido -> Parâmetros Efetivos
+
+| Pedido do usuário (exemplo) | Parâmetros efetivos esperados |
+| :--- | :--- |
+| "Quero um café para codar agora." | `cenario=debugging`, `pessoas=1`, `ml=150` |
+| "Sugira café para reunião de arquitetura com 6 pessoas." | `cenario=planning`, `pessoas=6`, `ml=900` |
+| "Tem incidente em produção, somos 3 devs." | `cenario=incident`, `pessoas=3`, `ml=450` |
+| "Planejamento trimestral com 15 líderes, quero infográfico." | `cenario=planning`, `pessoas=15`, `ml=2250`, runtime completo obrigatório |
+| "Faça um café do Cerrado, 300ml, mais intenso." | `regiao=Cerrado`, `ml=300`, possível ajuste `temp=94` |
+| "Só quero validar o cálculo em JSON." | usar `validar_cafe.py` com `--json` |
+| "Quero receita completa com manifesto e trace." | usar `receita_completa.py` com `--manifest` |
+| "Já tenho a imagem criativa, só fechar agora." | `receita_completa.py --creative-image-path ...` ou `finalizar_imagem_criativa.py --manifest ... --creative-image-path ...` |
+
 ### Telemetria Didatica Obrigatoria
 A rastreabilidade nao e opcional nesta skill. Cada execucao completa gera tres camadas de observabilidade:
 
@@ -170,6 +249,19 @@ A rastreabilidade nao e opcional nesta skill. Cada execucao completa gera tres c
 3. **Visualizacao amigavel:** `flow_trace_*.html` renderiza uma timeline com fases, status, decisoes, recursos e outputs.
 
 O manifesto referencia esses tres arquivos, e o Markdown portatil inclui uma secao `Telemetria da Execução` com links para eles.
+
+### Mapeamento de Marcos (Chat x Trace)
+Para auditoria rapida, use a tabela abaixo como contrato entre experiencia no chat e evidencias tecnicas no Flow Trace:
+
+| Marco Canonico | Mensagem no Chat (exemplo) | Evento no Trace (esperado) |
+| :--- | :--- | :--- |
+| `PRE-FLIGHT` (`PREPARACAO` no chat) | `[PREPARACAO][ORQUESTRADOR][INICIAR][INFO] Inicializando execução canônica da skill.` | `runtime_start`, `command_built` |
+| `DETERMINISTIC` (`EXECUCAO_DETERMINISTICA` no chat) | `[EXECUCAO_DETERMINISTICA][SCRIPT][EXECUTAR][INFO] Executando validar_cafe.py com flow...` | `início_da_skill`, `análise_de_contexto`, `cálculo_de_extração`, `inferência_de_volume`, `persistência_de_dados`, `renderização_visual` |
+| `ARTIFACT_PACKAGING` (`EMPACOTAMENTO_ARTEFATOS` no chat) | `[EMPACOTAMENTO_ARTEFATOS][RASTRO_EXECUCAO][VALIDAR][INFO] Rastro de execução real validado=sim.` | `empacotamento`, `artifacts_detected`, `manifest_written` |
+| `MULTIMODAL_CLOSURE` (`FECHAMENTO_MULTIMODAL` no chat) | `[FECHAMENTO_MULTIMODAL][PORTAO][DECIDIR][INFO/WARN] estado=... conclusao_permitida=...` | `creative_image_state`, `creative_image_auto_resolved`, `creative_image_finalized` (quando fechado) |
+| `FINAL_RESPONSE` (`RESPOSTA_FINAL` no chat) | `[RESPOSTA_FINAL][ORQUESTRADOR][CONCLUIR][INFO] Resposta final liberada.` | consolidado no manifesto final (`status=ok`, `completion_allowed=true`) + ultimo evento de fechamento multimodal |
+
+Regra de consistencia: cada marco exibido no chat deve ter evento correlato no Flow Trace e refletir o mesmo estado no manifesto JSON.
 
 ### Runtime de Imagem Criativa
 A imagem criativa e uma fase **agent-native**: o Python prepara o prompt e o manifesto; o Agente executa a ferramenta nativa de imagem e finaliza o contrato.
@@ -190,6 +282,21 @@ Uma entrega multimodal so esta completa quando o manifesto retornar `status: "ok
 
 Se `scripts/receita_completa.py` retornar `status: "pending_multimodal"`, o Agente nao deve responder ainda. Ele deve seguir `agent_next_action`, gerar a imagem criativa com a ferramenta nativa de imagem, salvar no `suggested_creative_image_path` e executar `scripts/finalizar_imagem_criativa.py`.
 
+### Opções Multimodais (Guia Objetivo)
+
+| Opção | Comportamento |
+| :--- | :--- |
+| `--creative-image-required` (padrão) | Exige fechamento multimodal completo antes da resposta final. |
+| `--no-creative-image-required` | Bypass apenas para desenvolvimento com `RECEITA_CAFE_DEV_MODE=1`. |
+| `--creative-image-path <png>` | Usa PNG criativo já pronto para finalizar automaticamente no mesmo run. |
+| Sem ferramenta nativa de imagem | O runtime tenta fallback determinístico para não quebrar a esteira. |
+
+Checklist multimodal de sucesso:
+1. `creative_image_path` existe e aponta para `.png`.
+2. `multimodal_status="ok"`.
+3. `completion_allowed=true`.
+4. `completion_block_reason=null`.
+
 ### Controle do Bypass Criativo (Modo Dev)
 O bypass `--no-creative-image-required` e aceito apenas em desenvolvimento com:
 
@@ -198,6 +305,52 @@ RECEITA_CAFE_DEV_MODE=1 python3 scripts/receita_completa.py --cenario debugging 
 ```
 
 Sem `RECEITA_CAFE_DEV_MODE=1`, o wrapper rejeita o bypass.
+
+### Padrões e Fallbacks (Resumo Executivo)
+Padrões operacionais para evitar ambiguidade:
+
+1. Pessoas:
+- Prompt singular -> `pessoas=1`.
+- Reunião sem quorum -> perguntar antes de executar.
+
+2. Volume:
+- Se `ml` ausente -> `ml = pessoas * 150`.
+
+3. Saída:
+- Artefatos e manifesto sempre em `.ia/output`.
+
+4. Telemetria:
+- `--chat-telemetry` ativo por padrão.
+- Flow trace real é requisito de conclusão.
+
+5. Multimodal:
+- Padrão é obrigatório (`creative_image_required=true`).
+- Se pendente, não finalizar resposta ao usuário.
+
+### Copiar e Rodar (por perfil)
+
+1. Iniciante (resultado completo recomendado):
+```bash
+python3 scripts/receita_completa.py --cenario planning --pessoas 6 --manifest
+```
+
+2. Líder técnico (fornecendo imagem criativa já pronta):
+```bash
+python3 scripts/receita_completa.py \
+  --cenario incident \
+  --pessoas 3 \
+  --creative-image-path .ia/output/imagem_criativa_incident_exemplo.png \
+  --manifest
+```
+
+3. Automação/CI (modo determinístico validável):
+```bash
+RECEITA_CAFE_DEV_MODE=1 python3 scripts/receita_completa.py \
+  --cenario debugging \
+  --pessoas 2 \
+  --no-creative-image-required \
+  --manifest
+```
 
 ### 2. Pedido Baseado em Cenário (Consultoria)
 **Prompt:** *"Estou em uma sessão crítica de deploy e preciso de café para 2 pessoas. O que você sugere?"*
@@ -233,6 +386,40 @@ A v4.1.0 introduz o parâmetro `--flow`. Este modo é focado no ensino, permitin
 ```bash
 python3 scripts/validar_cafe.py --cenario team_topologies --flow
 ```
+
+### Como Ler o Manifesto (Guia Rápido)
+Campos mínimos para tomada de decisão:
+
+| Campo | Significado prático | Regra |
+| :--- | :--- | :--- |
+| `status` | Estado global do run (`ok`, `pending_multimodal`, `failed`) | Só concluir quando `ok`. |
+| `completion_allowed` | Liberação da resposta final | Deve ser `true` para responder. |
+| `completion_block_reason` | Motivo explícito de bloqueio | Se preenchido, seguir `agent_next_action`. |
+| `agent_next_action` | Próximo passo recomendado pelo runtime | Executar antes de responder no chat. |
+| `artifacts.creative_image_path` | Caminho final da imagem criativa | Deve existir quando multimodal é obrigatório. |
+| `flow_trace_real_validated` | Validação do trace real | Deve ser `true` na entrega completa. |
+
+Leitura operacional:
+1. Verifique `completion_allowed`.
+2. Se `false`, leia `completion_block_reason` e `agent_next_action`.
+3. Só publique resposta final depois que o manifesto estiver consistente.
+
+### FAQ (Prompt x CLI x Multimodal)
+
+1. "Pedir no chat muda os parâmetros?"
+- Sim. O agente infere `cenario`, `pessoas` e eventualmente `ml`, depois converte para CLI.
+
+2. "Quando usar `validar_cafe.py` em vez de `receita_completa.py`?"
+- `validar_cafe.py` para validação técnica pontual; `receita_completa.py` para contrato fim a fim.
+
+3. "Posso ignorar imagem criativa?"
+- Apenas em modo dev com `RECEITA_CAFE_DEV_MODE=1` e `--no-creative-image-required`.
+
+4. "Recebi `pending_multimodal`; e agora?"
+- Gere/forneça PNG criativo e finalize com `finalizar_imagem_criativa.py`.
+
+5. "O que garante que o trace é real?"
+- `flow_trace_real_validated=true` + presença de `jsonl/json/html` no manifesto.
 
 ---
 
