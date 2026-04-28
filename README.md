@@ -85,6 +85,24 @@ Este projeto demonstra como transformar um Agente de IA em um especialista técn
 
 ---
 
+## 🎭 Demonstração Sênior: O Diálogo do Barista-Arquiteto
+
+Para demonstrar o poder desta Skill em sua apresentação, utilize o roteiro abaixo. Ele explora a capacidade do Agente de transitar entre o humor, a técnica e a arquitetura de software.
+
+### 1. O Caos (Contexto e Storytelling)
+**Pergunta:** *"Barista, estamos em uma War Room de incidente crítico. Um bug silencioso derrubou o gateway de pagamentos há 2 horas. Temos 8 pessoas na sala, a tensão está alta e os logs não param de subir. Qual a extração recomendada para mantermos a vigilância cognitiva e a resiliência?"*
+> **O que observar:** O Agente deve inferir o cenário `incident`, escalar o volume para 8 pessoas e sugerir o Robusta Amazônico com um storytelling focado em "modo sobrevivência".
+
+### 2. A Ciência (Domínio Técnico - REFERENCE.md)
+**Pergunta:** *"Entendido. Mas por que o Robusta Amazônico é o ideal aqui? Além disso, me explique tecnicamente o que acontece se errarmos o tempo de extração: qual a diferença entre a extração de ácidos e açúcares no resultado final?"*
+> **O que observar:** O Agente deve consultar o `REFERENCE.md` para explicar as fases da extração (0-1 min: Ácidos, 1-3 min: Açúcares) e justificar a alta cafeína do Robusta para o cenário.
+
+### 3. A Engenharia (Meta-Cognição - ARCH_SUMMARY.md)
+**Pergunta:** *"Como arquiteto sênior, como posso confiar que essa recomendação não é uma alucinação? Explique como sua arquitetura v5.0 garante a auditabilidade técnica e como você garante que o relatório portátil (.md) funcione perfeitamente em ambientes offline?"*
+> **O que observar:** O Agente deve consultar o `ARCH_SUMMARY.md` para explicar o conceito de "Cérebro Híbrido" (LLM + Python), a "Lean Telemetry" (JSON Único) e a técnica de "Base64 Dual-Image Embedding" para portabilidade.
+
+---
+
 ## 🛠️ Como rodar a demonstração?
 
 ### Comece por Intenção
