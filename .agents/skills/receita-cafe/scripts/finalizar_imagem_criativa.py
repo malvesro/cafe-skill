@@ -4,6 +4,8 @@ import argparse
 import json
 import os
 import sys
+import base64
+from PIL import Image
 
 from flow_trace_engine import append_jsonl, event, load_jsonl, write_artifacts
 
@@ -19,15 +21,14 @@ def _write_manifest(path, manifest):
         manifest_file.write("\n")
 
 
-def _validate_png(path):
+def _validate_image(path):
     if not os.path.exists(path):
         raise FileNotFoundError(f"Imagem criativa nao encontrada: {path}")
-    if not path.lower().endswith(".png"):
-        raise ValueError("A imagem criativa final deve ser um arquivo PNG.")
-    with open(path, "rb") as image_file:
-        signature = image_file.read(8)
-    if signature != b"\x89PNG\r\n\x1a\n":
-        raise ValueError("Arquivo informado nao possui assinatura PNG valida.")
+    try:
+        with Image.open(path) as img:
+            img.verify()
+    except Exception as e:
+        raise ValueError(f"O arquivo informado nao e uma imagem valida ou esta corrompido: {e}")
 
 
 def main():
@@ -40,7 +41,7 @@ def main():
     creative_image_path = os.path.abspath(args.creative_image_path)
 
     manifest = _load_manifest(manifest_path)
-    _validate_png(creative_image_path)
+    _validate_image(creative_image_path)
 
     checks = manifest.setdefault("checks", {})
     checks["creative_image_exists"] = True
@@ -90,6 +91,37 @@ def main():
         checks["flow_trace_html_exists"] = os.path.exists(trace_paths["flow_trace_html_path"])
 
     _write_manifest(manifest_path, manifest)
+
+    # Injeção de Imagem Criativa no Markdown Portátil (Base64)
+    markdown_path = artifacts.get("portable_markdown_path")
+    if markdown_path and os.path.exists(markdown_path):
+        try:
+            with Image.open(creative_image_path) as img:
+                img_format = img.format.lower() if img.format else "png"
+            
+            with open(creative_image_path, "rb") as image_file:
+                b64_image = base64.b64encode(image_file.read()).decode("utf-8")
+            
+            with open(markdown_path, "r", encoding="utf-8") as md_file:
+                md_content = md_file.read()
+            
+            # Substitui o marcador de pendência ou qualquer link existente para Imagem Criativa
+            marker_pattern = "## 🎨 Imagem Criativa\n\\*\\(Pendente: Geração por IA não configurada neste ambiente\\)\\*"
+            replacement = f"## 🎨 Imagem Criativa\n![Imagem Criativa](data:image/{img_format};base64,{b64_image})"
+            
+            import re
+            if "## 🎨 Imagem Criativa" in md_content:
+                # Tenta substituir o bloco de pendência específico
+                new_md_content = re.sub(marker_pattern, replacement, md_content)
+                # Se não mudou nada (talvez o texto seja diferente), tenta uma substituição genérica abaixo do título
+                if new_md_content == md_content:
+                     new_md_content = re.sub(r"## 🎨 Imagem Criativa\n.*", replacement, md_content)
+                
+                with open(markdown_path, "w", encoding="utf-8") as md_file:
+                    md_file.write(new_md_content)
+        except Exception as md_exc:
+            print(f"Aviso: Falha ao injetar imagem base64 no Markdown: {md_exc}", file=sys.stderr)
+
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
     return 0
 
