@@ -14,6 +14,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import shutil
 from datetime import datetime
 
 from flow_trace_engine import append_jsonl, event, load_jsonl, write_artifacts
@@ -70,11 +71,28 @@ CHAT_ACTION_PTBR = {
 
 
 def _build_command(args):
+    cenario_map = {
+        "debug_urgente_4_pessoas": "debugging",
+        "planning": "planning",
+        "debugging": "debugging",
+        "deploy": "deploy",
+        "code_review": "code_review",
+        "scrum": "scrum",
+        "team_topologies": "team_topologies",
+        "architecture": "architecture",
+        "security": "security",
+        "refactoring": "refactoring",
+        "incident": "incident",
+        "documentation": "documentation"
+    }
+    
+    cenario_final = cenario_map.get(args.cenario, "generico")
+    
     cmd = [
         sys.executable,
         VALIDAR_CAFE,
         "--cenario",
-        args.cenario,
+        cenario_final,
         "--pessoas",
         str(args.pessoas),
         "--flow",
@@ -82,6 +100,9 @@ def _build_command(args):
         "--markdown",
         "--artifacts-json",
     ]
+
+    if args.pedido:
+        cmd.extend(["--pedido", args.pedido])
 
     if args.ml:
         cmd.extend(["--ml", str(args.ml)])
@@ -461,6 +482,17 @@ def _resolve_creative_image_path_for_closure(args, png_path, suggested_path, cre
         resolved = os.path.abspath(args.creative_image_path)
         if not os.path.exists(resolved):
             raise FileNotFoundError(f"Imagem criativa informada não existe: {resolved}")
+        
+        # [MELHORIA] Se a imagem estiver fora do diretório de saída, trazemos para dentro do projeto
+        if not resolved.startswith(OUTPUT_DIR):
+            print(f"📥 Detectada imagem externa: {resolved}")
+            print(f"📂 Movendo para diretório de saída do projeto: {suggested_path}")
+            try:
+                shutil.copy2(resolved, suggested_path)
+                resolved = suggested_path
+            except Exception as e:
+                print(f"⚠️ Erro ao copiar imagem para o projeto: {e}")
+        
         return resolved, "provided"
 
     native_image_path, native_mode = _try_generate_creative_image_native(
@@ -470,15 +502,10 @@ def _resolve_creative_image_path_for_closure(args, png_path, suggested_path, cre
     if native_image_path:
         return native_image_path, native_mode
 
-    if png_path and os.path.exists(png_path):
-        target = _generate_creative_image_from_technical(
-            source_path=png_path,
-            target_path=suggested_path,
-            cenario=args.cenario,
-        )
-        return target, f"generated_from_technical_png_fallback_{native_mode}"
-
-    return None, native_mode
+    # Fallback removido: apenas loga o aviso e mantém como None
+    print(f"\n⚠️  Aviso: Motor de geração de imagem criativa (IA) não configurado.")
+    print(f"O prompt criativo está disponível em: {suggested_path.replace('.png', '.txt')}")
+    return None, "native_unavailable"
 
 
 def main():
@@ -523,10 +550,11 @@ def main():
             "'manual_chat' não executa geração no Python e mantém pending_multimodal."
         ),
     )
+    parser.add_argument("--pedido", help="Texto original do pedido do usuário.")
     parser.add_argument("--manifest", action="store_true", help="Imprime manifesto JSON ao final.")
     parser.add_argument("--dashboard", action="store_true", help="Gera dashboard de analytics.")
     args = parser.parse_args()
-    
+
     if args.dashboard:
         _emit_chat_telemetry("DASHBOARD", "EXECUCAO_DETERMINISTICA", "SCRIPT", "EXECUTAR", "INFO", "Invocando Módulo de Analytics de Alto Impacto.")
         cmd_dash = [sys.executable, VALIDAR_CAFE, "--dashboard", "--flow"]
@@ -537,6 +565,10 @@ def main():
 
     if not args.cenario or not args.pessoas:
         parser.error("Os argumentos --cenario e --pessoas são obrigatórios a menos que --dashboard seja usado.")
+
+    cmd = _build_command(args)
+    if args.pedido:
+        cmd.extend(["--pedido", shlex.quote(args.pedido)])
 
     global CHAT_TELEMETRY_ENABLED, CHAT_TELEMETRY_STYLE
     CHAT_TELEMETRY_ENABLED = args.chat_telemetry
