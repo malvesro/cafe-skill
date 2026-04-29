@@ -297,6 +297,7 @@ def main():
     parser.add_argument("--dashboard", action="store_true", help="Gera o infográfico de Analytics (Barista Histórico).")
     parser.add_argument("--flow", action="store_true", default=True, help="Habilita o modo de rastreabilidade passo a passo (Padrão: Ativo).")
     parser.add_argument("--artifacts-json", action="store_true", help="Emite JSON estruturado com artefatos ao final.")
+    parser.add_argument("--pedido", type=str, help="Texto original do pedido.")
     args = parser.parse_args()
 
     if args.flow:
@@ -356,6 +357,7 @@ def main():
         "cafe_g": round(volume_final * config["ratio"], 1) if volume_final else 0,
         "volume_ml": volume_final or 0,
         "num_pessoas": args.pessoas,
+        "pedido": args.pedido if args.pedido else "Não especificado",
         "temp_alvo": config["temp"],
         "moagem_ideal": config["moagem"],
         "notas": config["notas"],
@@ -423,9 +425,13 @@ def main():
             os.makedirs(OUTPUT_DIR, exist_ok=True)
             md_path = os.path.join(OUTPUT_DIR, md_filename)
             
-            md_content = f"""# ☕ Protocolo de Café Especial: {params['cenario'].replace('_', ' ').capitalize()}
+            md_content = f"""# ☕ Protocolo de Café Especial
+## Cenário: {params['cenario'].replace('_', ' ').capitalize()}
             
 Este documento é uma extensão da inteligência do seu Agente, gerado de forma **autocontida** para levar a experiência do café perfeito para qualquer lugar.
+
+## 📝 O Pedido
+> {params['pedido']}
 
 ## 🎬 Contexto e Storytelling
 {params['story'] if params['story'] else f"{insight}\n\n*{humor}*"}
@@ -452,6 +458,11 @@ Aqui estão os parâmetros técnicos calculados para garantir a máxima performa
 
 ## 🖼️ Infográfico Técnico (Embedded)
 ![Infográfico](data:image/png;base64,{encoded_string})
+
+## 🎨 Imagem Criativa
+*(Pendente: Geração por IA não configurada neste ambiente)*
+> **Prompt para geração manual:**
+> {prompt_criativo}
 
 ---
 *Gerado em: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
