@@ -26,6 +26,7 @@ interface:
       intensidade: { type: string, enum: [suave, equilibrado, intenso], default: equilibrado }
       num_pessoas: { type: integer, minimum: 1, default: 1 }
       moagem_ajustavel: { type: boolean, default: true }
+      pedido: { type: string, description: "O texto/pergunta original exata que o usuário fez ao agente contextualizando o desejo do café." }
       dashboard: { type: boolean, default: false, description: "Gera relatório de analytics" }
       flow: { type: boolean, default: true, description: "Habilita o modo de rastreabilidade didática passo a passo (Ativado por padrão)" }
   output:
@@ -59,13 +60,13 @@ O agente **DEVE** executar o runtime completo quando o usuário solicitar uma re
 Preferencialmente, invoque o runtime canonico:
 
 ```bash
-python3 scripts/receita_completa.py --cenario <cenario> --pessoas <num>
+python3 scripts/receita_completa.py --cenario <cenario> --pessoas <num> --pedido "<pedido_original_do_usuario>"
 ```
 
 Se precisar chamar o motor base diretamente, invoque o engine visual com:
 
 ```bash
-python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --flow --imagem --markdown
+python3 scripts/validar_cafe.py --ml <volume> --cenario <cenario> --pessoas <num> --pedido "<pedido>" --flow --imagem --markdown
 ```
 
 O arquivo PNG é salvo em `.ia/output/cafe_<cenario>_<timestamp>.png`, o documento portátil em `.ia/output/receita_<cenario>_<timestamp>.md` e o prompt criativo em `.ia/output/prompt_criativo_<cenario>_<timestamp>.txt` quando o runtime canonico for usado.

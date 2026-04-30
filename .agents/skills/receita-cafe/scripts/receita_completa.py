@@ -566,9 +566,6 @@ def main():
     if not args.cenario or not args.pessoas:
         parser.error("Os argumentos --cenario e --pessoas são obrigatórios a menos que --dashboard seja usado.")
 
-    cmd = _build_command(args)
-    if args.pedido:
-        cmd.extend(["--pedido", shlex.quote(args.pedido)])
 
     global CHAT_TELEMETRY_ENABLED, CHAT_TELEMETRY_STYLE
     CHAT_TELEMETRY_ENABLED = args.chat_telemetry
